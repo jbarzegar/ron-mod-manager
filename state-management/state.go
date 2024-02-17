@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -29,8 +30,9 @@ func validateRonDir(d string) error {
 	dirsToCheck := [3]string{"ReadyOrNot.exe", "Engine", "ReadyOrNot"}
 	invalid := []string{}
 
-	for _, d := range dirsToCheck {
-		if _, err := os.Stat(path.Join(d, "ReadyOrNot.exe")); os.IsNotExist(err) {
+	for _, x := range dirsToCheck {
+		fmt.Println(d, x)
+		if _, err := os.Stat(path.Join(d, x)); os.IsNotExist(err) {
 			invalid = append(invalid, d)
 
 		}
@@ -89,7 +91,11 @@ func ensureConfig(confPath string) types.MMConfig {
 
 		// json.Unmarshal(f, &c)
 
-		validateRonDir(c.GameDir)
+		err := validateRonDir(c.GameDir)
+
+		if err != nil {
+			log.Fatal(err)
+		}
 		validateModDir(c.ModDir)
 
 		return c

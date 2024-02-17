@@ -6,9 +6,13 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"path"
+	"path/filepath"
 	"strconv"
 
+	"github.com/jbarzegar/ron-mod-manager/config"
 	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
+	"github.com/jbarzegar/ron-mod-manager/types"
 	"github.com/jbarzegar/ron-mod-manager/utils"
 	"github.com/spf13/cobra"
 )
@@ -38,11 +42,12 @@ to quickly create a Cobra application.`,
 
 		return nil
 	},
+	// TODO: Allow for multiple mods to be installed?
 	Run: func(cmd *cobra.Command, args []string) {
-		// fmt.Println("install called")
-		// conf := config.GetConfig()
-		// archiveDir := path.Join(conf.ModDir, "archives")
-		archives := statemanagement.GetState().Archives
+		cf := config.GetConfig()
+		state := statemanagement.GetState()
+
+		archives := state.Archives
 
 		s, err := strconv.Atoi(args[0])
 
@@ -50,11 +55,46 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 
-		selection := s - 1
-		// fmt.Println()
+		// Get the real selection index
+		selectionIdx := s - 1
+		selection := archives[selectionIdx]
 
-		a := utils.FormatArchiveName(archives[selection].FileName)
-		fmt.Println("installing " + a)
+		name := utils.FormatArchiveName(selection.FileName)
+
+		fmt.Println("installing " + name)
+
+		modDir := path.Join(cf.ModDir, "mods", name)
+
+		// TODO: When a archive is already extracted, prompt for overwrite
+		err = utils.ExtractArchive(selection.FileName, modDir, false)
+
+		if err != nil {
+			panic(err)
+		}
+
+		// List all paks in file
+		// TODO: Make this recursive, rn it will only do a shallow check
+		matches, _ := filepath.Glob(path.Join(modDir, "*.pak"))
+
+		mod := types.ModInstall{ArchiveName: selection.FileName, Name: name, State: "inactive"}
+		mod.Paks = matches
+
+		// Look through state to see if mod is already installed
+		installed := false
+		for _, x := range state.Mods {
+			if x.Name == name {
+				installed = true
+			}
+		}
+
+		if !installed {
+			// append mod and write to state
+			state.Mods = append(state.Mods, mod)
+			statemanagement.WriteState(state, cf)
+		} else {
+			fmt.Println("Mod already installed")
+		}
+
 	},
 }
 

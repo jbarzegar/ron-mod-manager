@@ -9,7 +9,8 @@ type ModInstall struct {
 	Name        string `json:"name"`
 	ArchiveName string `json:"archiveName"`
 	// active | inactive
-	State string `json:"state"`
+	State string   `json:"state"`
+	Paks  []string `json:"paks"`
 }
 
 type Archive struct {
@@ -18,7 +19,7 @@ type Archive struct {
 }
 
 type ModState struct {
-	Mods       *[]ModInstall `json:"mods"`
-	Archives   []Archive     `json:"archives"`
-	ArchiveSum string        `json:"archiveSum"`
+	Mods       []ModInstall `json:"mods"`
+	Archives   []Archive    `json:"archives"`
+	ArchiveSum string       `json:"archiveSum"`
 }
