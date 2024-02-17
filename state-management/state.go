@@ -182,10 +182,8 @@ func PreflightChecks() {
 			a := types.Archive{FileName: archive, Md5Sum: genMd5Sums(archive)}
 			s.Archives = append(s.Archives, a)
 		}
-
+		// save state
+		WriteState(s, c)
 	}
-
-	// save state
-	WriteState(s, c)
 
 }
