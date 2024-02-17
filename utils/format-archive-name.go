@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"path"
 	"strings"
 
@@ -17,7 +16,6 @@ func FormatArchiveName(name string) string {
 		panic(err)
 	}
 
-	fmt.Println(ext.Extension())
 	s := strings.Split(name, path.Join(config.GetConfig().ModDir, "archives")+"/")[1]
 
 	return strings.Split(s, ext.Extension())[0]

@@ -119,6 +119,61 @@ func (m model) View() string {
 	return s
 }
 
+func activateMods(modsToActivate map[int]string) {
+	conf := config.GetConfig()
+	fmt.Println("activating mods ")
+
+	gamePakDir := path.Join(conf.GameDir, "ReadyOrNot", "Content", "Paks")
+
+	for _, modName := range modsToActivate {
+		fmt.Println(modName)
+
+		absModPath, _ := filepath.Abs(conf.ModDir)
+
+		modPath := path.Join(absModPath, "mods", modName)
+		m, _ := filepath.Glob(path.Join(modPath, "/*.pak"))
+
+		if len(m) == 1 {
+			mod := m[0]
+			t := strings.Split(mod, path.Join(modPath)+"/")[1]
+
+			_, err := os.Stat(path.Join(gamePakDir, t))
+
+			state := statemanagement.GetState()
+			if !os.IsNotExist(err) {
+				// Search all mods and see if the new mod was installed already
+				// Account for mods that were installed by ron-mm
+				for _, q := range state.Mods {
+					if q.Name == modName && q.State == "active" {
+						fmt.Println("Mod already installed")
+						return
+					}
+				}
+				// Mods may be installed manually and need to be accounted for
+				fmt.Println("Mod installed outside of ron-mm's delete mod prior to activating")
+			} else {
+				for i, q := range state.Mods {
+					if q.Name == modName {
+						state.Mods[i].State = "active"
+					}
+				}
+
+				statemanagement.WriteState(state, config.GetConfig())
+
+				fmt.Println(mod)
+				fmt.Println(path.Join(gamePakDir, t))
+				err = os.Symlink(mod, path.Join(gamePakDir, t))
+
+				if err != nil {
+					log.Fatal("why", err)
+				}
+
+			}
+		}
+	}
+
+}
+
 // activeCmd represents the activate command
 var activateCmd = &cobra.Command{
 	Use:   "activate",
@@ -130,7 +185,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.GetConfig()
 		p := tea.NewProgram(initialModel())
 
 		// Run select get mods to install
@@ -146,56 +200,7 @@ to quickly create a Cobra application.`,
 
 		// Do install when mods selected
 		if len(modsToInstall) >= 1 {
-			fmt.Println("activating mods ")
-
-			gamePakDir := path.Join(conf.GameDir, "ReadyOrNot", "Content", "Paks")
-
-			for _, modName := range modsToInstall {
-				fmt.Println(modName)
-
-				absModPath, _ := filepath.Abs(conf.ModDir)
-
-				modPath := path.Join(absModPath, "mods", modName)
-				m, _ := filepath.Glob(path.Join(modPath, "/*.pak"))
-
-				if len(m) == 1 {
-					mod := m[0]
-					t := strings.Split(mod, path.Join(modPath)+"/")[1]
-
-					_, err := os.Stat(path.Join(gamePakDir, t))
-
-					state := statemanagement.GetState()
-					if !os.IsNotExist(err) {
-						// Search all mods and see if the new mod was installed already
-						// Account for mods that were installed by ron-mm
-						for _, q := range state.Mods {
-							if q.Name == modName && q.State == "active" {
-								fmt.Println("Mod already installed")
-								return
-							}
-						}
-						// Mods may be installed manually and need to be accounted for
-						fmt.Println("Mod installed outside of ron-mm's delete mod prior to activating")
-					} else {
-						for i, q := range state.Mods {
-							if q.Name == modName {
-								state.Mods[i].State = "active"
-							}
-						}
-
-						statemanagement.WriteState(state, config.GetConfig())
-
-						fmt.Println(mod)
-						fmt.Println(path.Join(gamePakDir, t))
-						err = os.Symlink(mod, path.Join(gamePakDir, t))
-
-						if err != nil {
-							log.Fatal("why", err)
-						}
-
-					}
-				}
-			}
+			activateMods(modsToInstall)
 		} else {
 			fmt.Println("No mods to install")
 		}

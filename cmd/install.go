@@ -48,22 +48,17 @@ to quickly create a Cobra application.`,
 		cf := config.GetConfig()
 		state := statemanagement.GetState()
 
-		archives := state.Archives
-
 		s, err := strconv.Atoi(args[0])
-
 		if err != nil {
 			panic(err)
 		}
 
 		// Get the real selection index
-		selectionIdx := s - 1
-		selection := archives[selectionIdx]
+		selection := state.Archives[s-1]
 
 		name := strcase.ToSnake(utils.FormatArchiveName(selection.FileName))
 
 		fmt.Println("installing " + name)
-
 		modDir := path.Join(cf.ModDir, "mods", name)
 
 		// TODO: When a archive is already extracted, prompt for overwrite
