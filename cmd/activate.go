@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/paths"
 	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 
@@ -120,17 +121,14 @@ func (m model) View() string {
 }
 
 func activateMods(modsToActivate map[int]string) {
-	conf := config.GetConfig()
 	fmt.Println("activating mods ")
 
-	gamePakDir := path.Join(conf.GameDir, "ReadyOrNot", "Content", "Paks")
+	gamePakDir := paths.PaksDir()
 
 	for _, modName := range modsToActivate {
 		fmt.Println(modName)
 
-		absModPath, _ := filepath.Abs(conf.ModDir)
-
-		modPath := path.Join(absModPath, "mods", modName)
+		modPath := path.Join(paths.AbsModsDir(), modName)
 		m, _ := filepath.Glob(path.Join(modPath, "/*.pak"))
 
 		if len(m) == 1 {

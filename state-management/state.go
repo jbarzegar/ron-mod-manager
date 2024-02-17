@@ -191,5 +191,22 @@ func PreflightChecks() {
 		// save state
 		WriteState(s, c)
 	}
+}
 
+func GetModByName(name string) (*types.ModInstall, error) {
+	state := GetState()
+
+	var selectedMod *types.ModInstall = nil
+	for _, m := range state.Mods {
+		if m.Name == name {
+			selectedMod = &m
+			break
+		}
+	}
+
+	if selectedMod == nil {
+		return nil, errors.New("Mod not found")
+	}
+
+	return selectedMod, nil
 }
