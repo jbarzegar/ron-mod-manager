@@ -185,10 +185,12 @@ to quickly create a Cobra application.`,
 
 						statemanagement.WriteState(state, config.GetConfig())
 
-						err := os.Symlink(mod, path.Join(gamePakDir, t))
+						fmt.Println(mod)
+						fmt.Println(path.Join(gamePakDir, t))
+						err = os.Symlink(mod, path.Join(gamePakDir, t))
 
 						if err != nil {
-							log.Fatal(err)
+							log.Fatal("why", err)
 						}
 
 					}

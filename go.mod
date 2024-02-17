@@ -6,6 +6,7 @@ require (
 	github.com/bodgit/sevenzip v1.5.0
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/gabriel-vasile/mimetype v1.4.3
+	github.com/iancoleman/strcase v0.3.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/spf13/cobra v1.8.0
 )

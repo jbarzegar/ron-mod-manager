@@ -73,6 +73,7 @@ func extract7ZArchive(src string, dest string, overwrite bool) error {
 }
 
 func ExtractArchive(src string, dest string, overwrite bool) error {
+
 	_, err := os.Stat(dest)
 
 	if !os.IsNotExist(err) {

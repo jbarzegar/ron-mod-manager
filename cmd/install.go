@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/iancoleman/strcase"
 	"github.com/jbarzegar/ron-mod-manager/config"
 	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/jbarzegar/ron-mod-manager/types"
@@ -59,7 +60,7 @@ to quickly create a Cobra application.`,
 		selectionIdx := s - 1
 		selection := archives[selectionIdx]
 
-		name := utils.FormatArchiveName(selection.FileName)
+		name := strcase.ToSnake(utils.FormatArchiveName(selection.FileName))
 
 		fmt.Println("installing " + name)
 
