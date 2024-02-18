@@ -78,7 +78,7 @@ func (m ModModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ModModel) View() string {
 	// The header
-	s := "Select mods you want to deactivate\n\n"
+	s := "Select Things\n\n"
 
 	// Iterate over our choices
 	for i, choice := range m.choices {
