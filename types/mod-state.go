@@ -14,8 +14,10 @@ type ModInstall struct {
 }
 
 type Archive struct {
-	Md5Sum   string `json:"md5Sum"`
-	FileName string `json:"fileName"`
+	Md5Sum      string `json:"md5Sum"`
+	Name        string `json:"name"`
+	ArchiveFile string `json:"archiveName"`
+	Installed   bool   `json:"installed"`
 }
 
 type ModState struct {

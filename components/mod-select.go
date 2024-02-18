@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 )
 
 type ModModel struct {
@@ -15,30 +14,10 @@ type ModModel struct {
 
 // Setup model by pulling mods from state
 // TODO: Make it possible to grab certain mods (ie, active, inactive etc)
-func selectModInitialModel(filter string) ModModel {
-	state := statemanagement.GetState()
+func selectModInitialModel(choices []string) ModModel {
+	// state := statemanagement.GetState()
 
-	var choices []string
-
-	for _, mod := range state.Mods {
-		switch filter {
-		case "active", "inactive":
-			if mod.State == filter {
-				choices = append(choices, mod.Name)
-			}
-		case "":
-			choices = append(choices, mod.Name)
-
-		// handle unknown filters
-		default:
-			fmt.Println("WARN unsupported filter:", filter, " handling as if unfiltered")
-			choices = append(choices, mod.Name)
-
-		}
-		// if filter == nil {
-		// }
-
-	}
+	// var choices []string
 
 	return ModModel{
 		choices:  choices,
@@ -127,8 +106,8 @@ func (m ModModel) View() string {
 	return s
 }
 
-func SelectMod(filter string) map[int]string {
-	p := tea.NewProgram(selectModInitialModel(filter))
+func SelectMod(choices []string) map[int]string {
+	p := tea.NewProgram(selectModInitialModel(choices))
 
 	r, err := p.Run()
 

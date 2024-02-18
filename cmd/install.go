@@ -4,17 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"path"
-	"path/filepath"
-	"strconv"
-
-	"github.com/iancoleman/strcase"
-	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/components"
+	"github.com/jbarzegar/ron-mod-manager/manager"
 	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
-	"github.com/jbarzegar/ron-mod-manager/types"
-	"github.com/jbarzegar/ron-mod-manager/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -30,66 +22,69 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return errors.New("requires 1 arg")
-		}
-
-		selection, _ := strconv.Atoi(args[0])
-
-		if selection < 1 {
-			return errors.New("selection index must be at least `1`")
-		}
-
-		return nil
-	},
 	// TODO: Allow for multiple mods to be installed?
 	Run: func(cmd *cobra.Command, args []string) {
-		cf := config.GetConfig()
 		state := statemanagement.GetState()
 
-		s, err := strconv.Atoi(args[0])
-		if err != nil {
-			panic(err)
+		var choices []string
+		for _, a := range state.Archives {
+			choices = append(choices, a.ArchiveFile)
 		}
 
-		// Get the real selection index
-		selection := state.Archives[s-1]
+		selected := components.SelectMod(choices)
 
-		name := strcase.ToSnake(utils.FormatArchiveName(selection.FileName))
-
-		fmt.Println("installing " + name)
-		modDir := path.Join(cf.ModDir, "mods", name)
-
-		// TODO: When a archive is already extracted, prompt for overwrite
-		err = utils.ExtractArchive(selection.FileName, modDir, false)
-
-		if err != nil {
-			panic(err)
+		for _, s := range selected {
+			manager.Install(s)
 		}
 
-		// List all paks in file
-		// TODO: Make this recursive, rn it will only do a shallow check
-		matches, _ := filepath.Glob(path.Join(modDir, "*.pak"))
+		// fmt.Println(selected)
+		// cf := config.GetConfig()
+		// state := statemanagement.GetState()
 
-		mod := types.ModInstall{ArchiveName: selection.FileName, Name: name, State: "inactive"}
-		mod.Paks = matches
+		// fmt.Println(state.Archives)
 
-		// Look through state to see if mod is already installed
-		installed := false
-		for _, x := range state.Mods {
-			if x.Name == name {
-				installed = true
-			}
-		}
+		// s, err := strconv.Atoi(args[0])
+		// if err != nil {
+		// 	panic(err)
+		// }
 
-		if !installed {
-			// append mod and write to state
-			state.Mods = append(state.Mods, mod)
-			statemanagement.WriteState(state, cf)
-		} else {
-			fmt.Println("Mod already installed")
-		}
+		// // Get the real selection index
+		// selection := state.Archives[s-1]
+
+		// name := strcase.ToSnake(utils.FormatArchiveName(selection.FileName))
+
+		// fmt.Println("installing " + name)
+		// modDir := path.Join(cf.ModDir, "mods", name)
+
+		// // TODO: When a archive is already extracted, prompt for overwrite
+		// err = utils.ExtractArchive(selection.FileName, modDir, false)
+
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// // List all paks in file
+		// // TODO: Make this recursive, rn it will only do a shallow check
+		// matches, _ := filepath.Glob(path.Join(modDir, "*.pak"))
+
+		// mod := types.ModInstall{ArchiveName: selection.FileName, Name: name, State: "inactive"}
+		// mod.Paks = matches
+
+		// // Look through state to see if mod is already installed
+		// installed := false
+		// for _, x := range state.Mods {
+		// 	if x.Name == name {
+		// 		installed = true
+		// 	}
+		// }
+
+		// if !installed {
+		// 	// append mod and write to state
+		// 	state.Mods = append(state.Mods, mod)
+		// 	statemanagement.WriteState(state, cf)
+		// } else {
+		// 	fmt.Println("Mod already installed")
+		// }
 
 	},
 }

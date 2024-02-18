@@ -12,8 +12,10 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/iancoleman/strcase"
 	"github.com/jbarzegar/ron-mod-manager/config"
 	"github.com/jbarzegar/ron-mod-manager/types"
+	"github.com/jbarzegar/ron-mod-manager/utils"
 )
 
 func writeConfigFile(confFile string, config types.MMConfig) {
@@ -160,7 +162,7 @@ func PreflightChecks() {
 	ex, err := os.Getwd()
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// Detect and setup config
 	// Creates dir structure
@@ -183,14 +185,30 @@ func PreflightChecks() {
 		// resync sum
 		s.ArchiveSum = sum
 		// resync archives and sums
-		for _, archive := range archives {
-			// append(state.archives, )
-			a := types.Archive{FileName: archive, Md5Sum: genMd5Sums(archive)}
+		for _, archivePath := range archives {
+			archiveName := utils.SplitArchivePath(archivePath)
+			name := strcase.ToKebab(utils.SplitArchivePath(utils.FormatArchiveName(archivePath)))
+			a := types.Archive{ArchiveFile: archiveName, Name: name, Md5Sum: genMd5Sums(archivePath), Installed: false}
 			s.Archives = append(s.Archives, a)
 		}
 		// save state
 		WriteState(s, c)
 	}
+}
+
+func GetArchiveByName(name string) (*types.Archive, int, error) {
+	state := GetState()
+	var selectedArchive *types.Archive = nil
+	var selectedArchiveIdx = -1
+	for i, m := range state.Archives {
+		if m.ArchiveFile == name {
+			selectedArchive = &m
+			selectedArchiveIdx = i
+			break
+		}
+	}
+
+	return selectedArchive, selectedArchiveIdx, nil
 }
 
 func GetModByName(name string) (*types.ModInstall, error) {
@@ -209,4 +227,30 @@ func GetModByName(name string) (*types.ModInstall, error) {
 	}
 
 	return selectedMod, nil
+}
+
+// Get
+func GetModsByState(filter string) []types.ModInstall {
+	state := GetState()
+
+	var choices []types.ModInstall
+	for _, mod := range state.Mods {
+		switch filter {
+		case "active", "inactive":
+			if mod.State == filter {
+				choices = append(choices, mod)
+			}
+		case "":
+			choices = append(choices, mod)
+
+		// handle unknown filters
+		default:
+			fmt.Println("WARN unsupported filter:", filter, " handling as if unfiltered")
+			choices = append(choices, mod)
+
+		}
+	}
+
+	return choices
+
 }

@@ -7,18 +7,20 @@ import (
 	"fmt"
 
 	stateManagement "github.com/jbarzegar/ron-mod-manager/state-management"
-	"github.com/jbarzegar/ron-mod-manager/utils"
 	"github.com/spf13/cobra"
 )
 
 func handleListArchives(cmd *cobra.Command, args []string) {
-
 	state := stateManagement.GetState()
 
 	for i, a := range state.Archives {
-		s := utils.FormatArchiveName(a.FileName)
+		var str = a.ArchiveFile
 
-		fmt.Println(i+1, s)
+		if a.Installed {
+			str += str + " [Installed]"
+		}
+
+		fmt.Println(i+1, str)
 	}
 }
 

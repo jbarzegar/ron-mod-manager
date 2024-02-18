@@ -12,7 +12,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/components"
 	"github.com/jbarzegar/ron-mod-manager/config"
 	"github.com/jbarzegar/ron-mod-manager/paths"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
+	s "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 )
 
@@ -27,15 +27,22 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		state := statemanagement.GetState()
+		state := s.GetState()
 		// Show select to determine which mods to deactivate.
 		// Choices will only display active mods in the view
-		modsToDeactivate := components.SelectMod("active")
+		activeMods := s.GetModsByState("active")
+
+		var choices []string
+		for _, m := range activeMods {
+			choices = append(choices, m.Name)
+		}
+
+		modsToDeactivate := components.SelectMod(choices)
 		paksDir := paths.PaksDir()
 
 		for mIdx, m := range modsToDeactivate {
 			// Get mod out of state
-			mod, err := statemanagement.GetModByName(m)
+			mod, err := s.GetModByName(m)
 
 			if err != nil {
 				log.Fatal(err)
@@ -64,7 +71,7 @@ to quickly create a Cobra application.`,
 			// Update state to signify the mod is inactive
 			state.Mods[mIdx].State = "inactive"
 
-			statemanagement.WriteState(state, config.GetConfig())
+			s.WriteState(state, config.GetConfig())
 		}
 	},
 }

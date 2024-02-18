@@ -7,12 +7,17 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/config"
 )
 
-func AbsModsDir() string {
+func absBasePath() string {
 	conf := config.GetConfig()
 	absModPath, _ := filepath.Abs(conf.ModDir)
 
-	return path.Join(absModPath, "mods")
-
+	return absModPath
 }
 
-// func ModsDir() string {}
+func AbsArchiveDir() string {
+	return path.Join(absBasePath(), "archives")
+}
+
+func AbsModsDir() string {
+	return path.Join(absBasePath(), "mods")
+}
