@@ -4,14 +4,8 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"log"
-	"os"
-	"path"
-	"strings"
-
 	"github.com/jbarzegar/ron-mod-manager/components"
-	"github.com/jbarzegar/ron-mod-manager/config"
-	"github.com/jbarzegar/ron-mod-manager/paths"
+	"github.com/jbarzegar/ron-mod-manager/manager"
 	s "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +21,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		state := s.GetState()
 		// Show select to determine which mods to deactivate.
 		// Choices will only display active mods in the view
 		activeMods := s.GetModsByState("active")
@@ -38,41 +31,8 @@ to quickly create a Cobra application.`,
 		}
 
 		modsToDeactivate := components.SelectMod(choices)
-		paksDir := paths.PaksDir()
 
-		for mIdx, m := range modsToDeactivate {
-			// Get mod out of state
-			mod, err := s.GetModByName(m)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// remove symlink (if it's there)
-			for _, p := range mod.Paks {
-				// s := strings.Split(p, path.Join(config.GetConfig().ModDir, mod.Name, "mods")+"/")[0]
-
-				s := strings.Split(p, path.Join(config.GetConfig().ModDir, "mods", mod.Name)+"/")[1]
-				// check if symlink is in dir
-				dir := path.Join(paksDir, s)
-
-				_, err := os.Lstat(dir)
-
-				if !os.IsNotExist(err) {
-					err := os.Remove(dir)
-
-					if err != nil {
-						log.Fatal(err)
-					}
-				}
-
-			}
-
-			// Update state to signify the mod is inactive
-			state.Mods[mIdx].State = "inactive"
-
-			s.WriteState(state, config.GetConfig())
-		}
+		manager.Deactivate(modsToDeactivate)
 	},
 }
 

@@ -36,56 +36,6 @@ to quickly create a Cobra application.`,
 		for _, s := range selected {
 			manager.Install(s)
 		}
-
-		// fmt.Println(selected)
-		// cf := config.GetConfig()
-		// state := statemanagement.GetState()
-
-		// fmt.Println(state.Archives)
-
-		// s, err := strconv.Atoi(args[0])
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// // Get the real selection index
-		// selection := state.Archives[s-1]
-
-		// name := strcase.ToSnake(utils.FormatArchiveName(selection.FileName))
-
-		// fmt.Println("installing " + name)
-		// modDir := path.Join(cf.ModDir, "mods", name)
-
-		// // TODO: When a archive is already extracted, prompt for overwrite
-		// err = utils.ExtractArchive(selection.FileName, modDir, false)
-
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// // List all paks in file
-		// // TODO: Make this recursive, rn it will only do a shallow check
-		// matches, _ := filepath.Glob(path.Join(modDir, "*.pak"))
-
-		// mod := types.ModInstall{ArchiveName: selection.FileName, Name: name, State: "inactive"}
-		// mod.Paks = matches
-
-		// // Look through state to see if mod is already installed
-		// installed := false
-		// for _, x := range state.Mods {
-		// 	if x.Name == name {
-		// 		installed = true
-		// 	}
-		// }
-
-		// if !installed {
-		// 	// append mod and write to state
-		// 	state.Mods = append(state.Mods, mod)
-		// 	statemanagement.WriteState(state, cf)
-		// } else {
-		// 	fmt.Println("Mod already installed")
-		// }
-
 	},
 }
 

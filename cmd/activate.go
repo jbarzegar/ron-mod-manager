@@ -5,14 +5,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"path"
-	"path/filepath"
-	"strings"
 
-	"github.com/jbarzegar/ron-mod-manager/config"
-	"github.com/jbarzegar/ron-mod-manager/paths"
+	"github.com/jbarzegar/ron-mod-manager/manager"
 	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 
@@ -120,58 +115,6 @@ func (m model) View() string {
 	return s
 }
 
-func activateMods(modsToActivate map[int]string) {
-	fmt.Println("activating mods ")
-
-	gamePakDir := paths.PaksDir()
-
-	for _, modName := range modsToActivate {
-		fmt.Println(modName)
-
-		modPath := path.Join(paths.AbsModsDir(), modName)
-		m, _ := filepath.Glob(path.Join(modPath, "/*.pak"))
-
-		if len(m) == 1 {
-			mod := m[0]
-			t := strings.Split(mod, path.Join(modPath)+"/")[1]
-
-			_, err := os.Stat(path.Join(gamePakDir, t))
-
-			state := statemanagement.GetState()
-			if !os.IsNotExist(err) {
-				// Search all mods and see if the new mod was installed already
-				// Account for mods that were installed by ron-mm
-				for _, q := range state.Mods {
-					if q.Name == modName && q.State == "active" {
-						fmt.Println("Mod already installed")
-						return
-					}
-				}
-				// Mods may be installed manually and need to be accounted for
-				fmt.Println("Mod installed outside of ron-mm's delete mod prior to activating")
-			} else {
-				for i, q := range state.Mods {
-					if q.Name == modName {
-						state.Mods[i].State = "active"
-					}
-				}
-
-				statemanagement.WriteState(state, config.GetConfig())
-
-				fmt.Println(mod)
-				fmt.Println(path.Join(gamePakDir, t))
-				err = os.Symlink(mod, path.Join(gamePakDir, t))
-
-				if err != nil {
-					log.Fatal("why", err)
-				}
-
-			}
-		}
-	}
-
-}
-
 // activeCmd represents the activate command
 var activateCmd = &cobra.Command{
 	Use:   "activate",
@@ -198,7 +141,7 @@ to quickly create a Cobra application.`,
 
 		// Do install when mods selected
 		if len(modsToInstall) >= 1 {
-			activateMods(modsToInstall)
+			manager.Activate(modsToInstall)
 		} else {
 			fmt.Println("No mods to install")
 		}
