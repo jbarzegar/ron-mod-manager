@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -27,15 +28,33 @@ func Install(n string) {
 		log.Fatal(err)
 	}
 
-	// Extract paks
-	// List all paks in file
-	// TODO: Make this recursive, rn it will only do a shallow check
-	matches, _ := filepath.Glob(path.Join(absModPath, "*.pak"))
+	var matches []string
+
+	filepath.Walk(absModPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			if err != nil {
+				log.Fatal(err)
+				return err
+			}
+
+			if strings.HasSuffix(path, ".pak") {
+				matches = append(matches, path)
+			}
+
+		}
+
+		return nil
+	})
 
 	mod := types.ModInstall{ArchiveName: n, Name: archive.Name, Paks: []string{}, State: "inactive"}
 
 	for _, m := range matches {
-		mod.Paks = append(mod.Paks, strings.Split(strings.Split(m, archive.Name)[1], "/")[1])
+		relPakPath := strings.Split(m, absModPath+"/")[1]
+		mod.Paks = append(mod.Paks, relPakPath)
 	}
 
 	// Look through state to see if mod is already installed
