@@ -14,13 +14,13 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/types"
 )
 
-func linkPak(m *types.ModInstall, p string, modName string) {
+func linkPak(m *types.ModInstall, p types.Pak, modName string) {
 
 	state := statemanagement.GetState()
-	absPakModPath := path.Join(paths.AbsModsDir(), m.Name, p)
+	absPakModPath := path.Join(paths.AbsModsDir(), m.Name, p.Name)
 	absPakGamePath := paths.PaksDir()
 
-	_, err := os.Stat(path.Join(absPakGamePath, p))
+	_, err := os.Stat(path.Join(absPakGamePath, p.Name))
 
 	if !os.IsNotExist(err) {
 		// Search all mods and see if the new mod was installed already
@@ -42,7 +42,7 @@ func linkPak(m *types.ModInstall, p string, modName string) {
 		}
 
 		statemanagement.WriteState(state, config.GetConfig())
-		err = os.Symlink(absPakModPath, path.Join(absPakGamePath, p))
+		err = os.Symlink(absPakModPath, path.Join(absPakGamePath, p.Name))
 
 		if err != nil {
 			log.Fatal("why", err)
@@ -65,7 +65,12 @@ func Activate(modsToActivate map[int]string) {
 			linkPak(m, p, modName)
 
 		} else {
-			choices := components.SelectMod(m.Paks)
+			var paks []string
+			for _, p := range m.Paks {
+				paks = append(paks, p.Name)
+			}
+
+			choices := components.SelectMod(paks)
 			state := statemanagement.GetState()
 
 			for _, p := range choices {
@@ -95,6 +100,14 @@ func Activate(modsToActivate map[int]string) {
 					for i, q := range state.Mods {
 						if q.Name == modName {
 							state.Mods[i].State = "active"
+
+							fmt.Println(state.Mods[i].Paks)
+							for ii, o := range state.Mods[i].Paks {
+								if p == o.Name {
+
+									state.Mods[i].Paks[ii].Installed = true
+								}
+							}
 						}
 					}
 

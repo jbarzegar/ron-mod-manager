@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/jbarzegar/ron-mod-manager/config"
 	"github.com/jbarzegar/ron-mod-manager/paths"
@@ -25,16 +26,23 @@ func Deactivate(modsToDeactivate map[int]string) {
 
 		// remove symlink (if it's there)
 		for _, p := range mod.Paks {
-			// check if symlink is in dir
-			dir := path.Join(paksDir, p)
-			_, err := os.Lstat(dir)
-			if !os.IsNotExist(err) {
-				err := os.Remove(dir)
 
-				fmt.Println("Symlink removed")
+			if p.Installed {
+				// check if symlink is in dir
+				dir := path.Join(paksDir, p.Name)
+				fmt.Println(dir)
+				_, err := os.Lstat(dir)
+				if !os.IsNotExist(err) {
+					err := os.Remove(dir)
 
-				if err != nil {
-					log.Fatal(err)
+					fmt.Println("Symlink removed")
+
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					x := path.Join(strings.Split(p.Name, string(os.PathSeparator))[1])
+					log.Fatalf("Path doesn't exist", x)
 				}
 			}
 

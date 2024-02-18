@@ -5,12 +5,17 @@ type MMConfig struct {
 	ModDir  string
 }
 
+type Pak struct {
+	Name      string `json:"name"`
+	Installed bool   `json:"installed"`
+}
+
 type ModInstall struct {
 	Name        string `json:"name"`
 	ArchiveName string `json:"archiveName"`
 	// active | inactive
-	State string   `json:"state"`
-	Paks  []string `json:"paks"`
+	State string `json:"state"`
+	Paks  []Pak  `json:"paks"`
 }
 
 type Archive struct {

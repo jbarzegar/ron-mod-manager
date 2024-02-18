@@ -50,11 +50,11 @@ func Install(n string) {
 		return nil
 	})
 
-	mod := types.ModInstall{ArchiveName: n, Name: archive.Name, Paks: []string{}, State: "inactive"}
+	mod := types.ModInstall{ArchiveName: n, Name: archive.Name, Paks: []types.Pak{}, State: "inactive"}
 
 	for _, m := range matches {
 		relPakPath := strings.Split(m, absModPath+"/")[1]
-		mod.Paks = append(mod.Paks, relPakPath)
+		mod.Paks = append(mod.Paks, types.Pak{Name: relPakPath, Installed: false})
 	}
 
 	// Look through state to see if mod is already installed
