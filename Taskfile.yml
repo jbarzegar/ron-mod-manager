@@ -2,23 +2,25 @@ version: '3'
 
 vars:
   MODULE_BASE_PATH: "github.com/jbarzegar/ron-mod-manager" 
-  RON_MM_CONFIG_DIR: "{{.HOME}}/.config/ron-mm"
+  RON_MM_CONFIG_DIR: "{{.HOME}}/.config/ron-mod-manager"
   LDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
+  GO_OUTPUT: "./dist/ron-mod-manager"
 
 
 
 tasks:
   build:  
-    vars:
-      GO_OUTPUT: "./dist/ron-mm"
     cmds:
-      - go build -v -ldflags "-X {{.LDFLAGS}}" -o "{{.GO_OUTPUT}}" .
+      - go build -v -ldflags "-X "{{.LDFLAGS}}"" -o "{{.GO_OUTPUT}}" .
       
   install:
     description: "Install to bin location"
     vars: 
-      GO_OUTPUT: "{{.HOME}}/.bin/ron-mm/ron-mod-manager"
-    task: build
+      BIN_LOCATION: "{{.HOME}}/.bin/ron-mm"
+    cmds:
+      - task: build
+      - mkdir -p {{.BIN_LOCATION}}
+      - mv {{.GO_OUTPUT}} {{.BIN_LOCATION}}/ron-mod-manager
 
   dev:
     vars:
