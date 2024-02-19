@@ -1,8 +1,8 @@
 package types
 
 type MMConfig struct {
-	GameDir string
-	ModDir  string
+	GameDir string `json:"gameDir"`
+	ModDir  string `json:"modDir"`
 }
 
 type Pak struct {

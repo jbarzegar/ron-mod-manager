@@ -23,9 +23,12 @@ func writeConfigFile(confFile string, config types.MMConfig) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(b)
 
-	os.WriteFile(confFile, b, 0666)
+	err = os.WriteFile(confFile, b, 0666)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func validateRonDir(d string) error {
@@ -33,7 +36,6 @@ func validateRonDir(d string) error {
 	invalid := []string{}
 
 	for _, x := range dirsToCheck {
-		fmt.Println(d, x)
 		if _, err := os.Stat(path.Join(d, x)); os.IsNotExist(err) {
 			invalid = append(invalid, d)
 
@@ -80,18 +82,10 @@ func ensureConfig(confPath string) types.MMConfig {
 	defaultConfig := types.MMConfig{GameDir: "unknown", ModDir: "unknown"}
 
 	if _, err := os.Stat(confPath); errors.Is(err, os.ErrNotExist) {
-		// fmt.Println("Write config file")
+		fmt.Println("Write config file")
 		writeConfigFile(confPath, defaultConfig)
 	} else {
 		c := config.ReadConfFile(confPath)
-		// var c types.MMConfig
-
-		// f, err := os.ReadFile(confPath)
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// json.Unmarshal(f, &c)
 
 		err := validateRonDir(c.GameDir)
 
@@ -157,17 +151,23 @@ func listArchives(modDir string) []string {
 	return archives
 }
 
-// Run through a large amount of checks or state setup prior to running the application
+// cecks or state setup prior to running the application
 func PreflightChecks() {
-	ex, err := os.Getwd()
+	// var ex string
+	ex := config.ConfPath
 
-	if err != nil {
-		log.Fatal(err)
-	}
 	// Detect and setup config
 	// Creates dir structure
 	// Generates initial mod state file
-	c := ensureConfig(path.Join(ex, "conf.json"))
+	configFilePath := path.Join(ex, "ron-mm.conf.json")
+
+	err := os.MkdirAll(ex, 0700)
+
+	if err != nil {
+		log.Fatalf("Err creating config path", err)
+	}
+
+	c := ensureConfig(configFilePath)
 
 	// Load state into memory
 	s := GetState()

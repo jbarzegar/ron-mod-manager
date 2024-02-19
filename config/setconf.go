@@ -9,6 +9,8 @@ import (
 
 var conf types.MMConfig
 
+var ConfPath string
+
 func ReadConfFile(p string) types.MMConfig {
 	file, err := os.ReadFile(p)
 
