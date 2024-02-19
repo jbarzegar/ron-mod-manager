@@ -16,40 +16,53 @@ func Deactivate(modsToDeactivate map[int]string) {
 	state := statemanagement.GetState()
 	paksDir := paths.PaksDir()
 
-	for mIdx, m := range modsToDeactivate {
+	for _, m := range modsToDeactivate {
 		// Get mod out of state
-		mod, err := statemanagement.GetModByName(m)
+		mod, mIdx, err := statemanagement.GetModByName(m)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// remove symlink (if it's there)
-		for _, p := range mod.Paks {
-
-			if p.Installed {
-				// check if symlink is in dir
-				dir := path.Join(paksDir, p.Name)
-				fmt.Println(dir)
-				_, err := os.Lstat(dir)
-				if !os.IsNotExist(err) {
-					err := os.Remove(dir)
-
-					fmt.Println("Symlink removed")
-
-					if err != nil {
-						log.Fatal(err)
-					}
-				} else {
-					x := path.Join(strings.Split(p.Name, string(os.PathSeparator))[1])
-					log.Fatalf("Path doesn't exist", x)
+		var dir string
+		var pIdx int
+		if len(mod.Paks) > 1 {
+			for pi, p := range mod.Paks {
+				if p.Installed {
+					splitPak := strings.Split(p.Name, string(os.PathSeparator))
+					_x := splitPak[len(splitPak)-1]
+					dir = path.Join(paksDir, _x)
+					pIdx = pi
 				}
+			}
+		} else {
+			p := mod.Paks[0]
+			if p.Installed {
+				dir = path.Join(paksDir, p.Name)
+				pIdx = 0
 			}
 
 		}
 
+		_, err = os.Lstat(dir)
+
+		// check if symlink is in dir
+		if !os.IsNotExist(err) {
+			// remove symlink (if it's there)
+			err := os.Remove(dir)
+
+			fmt.Println("Symlink removed")
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			fmt.Println("Path doesn't exist: " + dir)
+		}
+
 		// Update state to signify the mod is inactive
 		state.Mods[mIdx].State = "inactive"
+		state.Mods[mIdx].Paks[pIdx].Installed = false
 
 		statemanagement.WriteState(state, config.GetConfig())
 

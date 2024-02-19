@@ -15,7 +15,6 @@ import (
 )
 
 func linkPak(m *types.ModInstall, p types.Pak, modName string) {
-
 	state := statemanagement.GetState()
 	absPakModPath := path.Join(paths.AbsModsDir(), m.Name, p.Name)
 	absPakGamePath := paths.PaksDir()
@@ -38,6 +37,14 @@ func linkPak(m *types.ModInstall, p types.Pak, modName string) {
 		for i, q := range state.Mods {
 			if q.Name == modName {
 				state.Mods[i].State = "active"
+
+				for ii, o := range state.Mods[i].Paks {
+					if p.Name == o.Name {
+						state.Mods[i].Paks[ii].Installed = true
+					}
+
+				}
+				break
 			}
 		}
 
@@ -56,9 +63,7 @@ func Activate(modsToActivate map[int]string) {
 	fmt.Println("activating mods ")
 
 	for _, modName := range modsToActivate {
-		m, _ := statemanagement.GetModByName(modName)
-
-		fmt.Println(m.Name, m.Paks)
+		m, _, _ := statemanagement.GetModByName(modName)
 
 		if len(m.Paks) == 1 {
 			p := m.Paks[0]
@@ -73,15 +78,14 @@ func Activate(modsToActivate map[int]string) {
 			choices := components.SelectMod(paks)
 			state := statemanagement.GetState()
 
+			// TODO: linkPak(m, p, modName) should handle recursive mod installs
 			for _, p := range choices {
-				// x := strings.Split(p, string(os.PathSeparator))
-				// fmt.Println(, x[1])
-				// linkPak(m, p, modName)
-
 				absPakModPath := path.Join(paths.AbsModsDir(), m.Name, p)
 				absPakGamePath := paths.PaksDir()
 
-				x := path.Join(absPakGamePath, strings.Split(p, string(os.PathSeparator))[1])
+				splitPak := strings.Split(p, string(os.PathSeparator))
+				_x := splitPak[len(splitPak)-1]
+				x := path.Join(absPakGamePath, _x)
 				_, err := os.Stat(x)
 
 				if !os.IsNotExist(err) {
@@ -101,13 +105,13 @@ func Activate(modsToActivate map[int]string) {
 						if q.Name == modName {
 							state.Mods[i].State = "active"
 
-							fmt.Println(state.Mods[i].Paks)
 							for ii, o := range state.Mods[i].Paks {
 								if p == o.Name {
-
 									state.Mods[i].Paks[ii].Installed = true
+									break
 								}
 							}
+							break
 						}
 					}
 

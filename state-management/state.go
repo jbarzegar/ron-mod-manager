@@ -211,22 +211,24 @@ func GetArchiveByName(name string) (*types.Archive, int, error) {
 	return selectedArchive, selectedArchiveIdx, nil
 }
 
-func GetModByName(name string) (*types.ModInstall, error) {
+func GetModByName(name string) (*types.ModInstall, int, error) {
 	state := GetState()
 
 	var selectedMod *types.ModInstall = nil
-	for _, m := range state.Mods {
+	var idx = -1
+	for i, m := range state.Mods {
 		if m.Name == name {
 			selectedMod = &m
+			idx = i
 			break
 		}
 	}
 
 	if selectedMod == nil {
-		return nil, errors.New("Mod not found")
+		return nil, -1, errors.New("mod not found")
 	}
 
-	return selectedMod, nil
+	return selectedMod, idx, nil
 }
 
 // Get
