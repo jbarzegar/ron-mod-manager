@@ -58,24 +58,17 @@ func validateModDir(c string) {
 	// modState := path.Join(c, "mod-state.meta.json")
 
 	dirsToEnsure := []string{archivesPath, modsPath}
-	// filesToEnsure := []string{modState}
-
 	for _, d := range dirsToEnsure {
-		// if _, err := os.Stat(d)
-		// x, _ := os.Stat(d)
 		if _, err := os.Stat(d); os.IsNotExist(err) {
-			fmt.Println(d, "doesn't exist")
+			fmt.Println(d, "doesn't exist, creating")
+			err = os.MkdirAll(d, 0700)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
 		}
-
 	}
-
-	// for _, f := range filesToEnsure {
-	// 	if _, err := os.Stat(f); os.IsNotExist(err) {
-	// 		m, _ := json.Marshal(ModState{archiveSum: ""})
-	// 		// os.WriteFile(f, m, 0666)
-	// 	}
-	// }
-
 }
 
 func ensureConfig(confPath string) types.MMConfig {
