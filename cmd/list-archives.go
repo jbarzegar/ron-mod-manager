@@ -4,17 +4,28 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 
-	stateManagement "github.com/jbarzegar/ron-mod-manager/state-management"
+	"github.com/jbarzegar/ron-mod-manager/db"
 	"github.com/spf13/cobra"
 )
 
 func handleListArchives(cmd *cobra.Command, args []string) {
-	state := stateManagement.GetState()
+	ctx := context.Background()
+	archives, err := db.Client().Archive.Query().All(ctx)
 
-	for i, a := range state.Archives {
-		var str = a.ArchiveFile
+	if err != nil {
+		log.Fatalf("Err fetching archives", err)
+	}
+
+	if len(archives) == 0 {
+		fmt.Println("No archives")
+	}
+
+	for i, a := range archives {
+		var str = a.Name
 
 		if a.Installed {
 			str += str + " [Installed]"
