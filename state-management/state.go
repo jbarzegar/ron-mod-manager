@@ -2,6 +2,7 @@ package statemanagement
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"encoding/gob"
 	"encoding/json"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent/archive"
 	"github.com/jbarzegar/ron-mod-manager/types"
 	"github.com/jbarzegar/ron-mod-manager/utils"
 )
@@ -162,30 +165,36 @@ func PreflightChecks() {
 
 	c := ensureConfig(configFilePath)
 
-	// Load state into memory
-	s := GetState()
-
-	// state.archiveSum
-
-	// read archives dir generate md5 sum
-	// add to mod-state.meta.json
 	archives := listArchives(c.ModDir)
+	archiveModel := db.Client().Archive
 
-	// generate md5 sum, (skip if md5 matches one present in state file)
-	sum := genMd5Sums(archives)
+	for _, archivePath := range archives {
+		name := strcase.ToKebab(utils.SplitArchivePath(utils.FormatArchiveName(archivePath)))
 
-	if sum != s.ArchiveSum {
-		// resync sum
-		s.ArchiveSum = sum
-		// resync archives and sums
-		for _, archivePath := range archives {
-			archiveName := utils.SplitArchivePath(archivePath)
-			name := strcase.ToKebab(utils.SplitArchivePath(utils.FormatArchiveName(archivePath)))
-			a := types.Archive{ArchiveFile: archiveName, Name: name, Md5Sum: genMd5Sums(archivePath), Installed: false}
-			s.Archives = append(s.Archives, a)
+		a := archiveModel.
+			Query().Where(archive.Name(name))
+
+		archiveExists, err := a.Exist(context.Background())
+
+		if err != nil {
+			log.Fatalf("Failure reading archive", err)
 		}
-		// save state
-		WriteState(s, c)
+
+		if !archiveExists {
+			// Write to disk
+			fmt.Println(archivePath)
+			_, err := archiveModel.
+				Create().
+				SetName(name).
+				SetArchivePath(archivePath).
+				SetMd5Sum(genMd5Sums(name)).
+				SetInstalled(false).
+				Save(context.Background())
+
+			if err != nil {
+				log.Fatalf("Failure writing archive", err)
+			}
+		}
 	}
 }
 
