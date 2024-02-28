@@ -25,7 +25,8 @@ func InitClient() (*ent.Client, error) {
 		return nil, errors.New("client-already-connected")
 	}
 
-	client, err := ent.Open("sqlite3", "file:ent.sqlite?mode=memory&cache=shared&_fk=1")
+	// mode=memory&
+	client, err := ent.Open("sqlite3", "file:ent.sqlite?cache=shared&_fk=1")
 
 	if err != nil {
 		log.Fatalf("Failed to connect to sqlite", err)

@@ -1,71 +1,74 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent/mod"
 	"github.com/jbarzegar/ron-mod-manager/paths"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 )
 
+type pakToDisable struct {
+	id  int
+	mId int
+	dir string
+}
+
 func Deactivate(modsToDeactivate map[int]string) {
-	state := statemanagement.GetState()
+	// state := statemanagement.GetState()
 	paksDir := paths.PaksDir()
 
-	for _, m := range modsToDeactivate {
+	for _, modName := range modsToDeactivate {
 		// Get mod out of state
-		mod, mIdx, err := statemanagement.GetModByName(m)
+		// mod, mIdx, err := statemanagement.GetModByName(m)
+		m, err := db.Client().
+			Mod.
+			Query().
+			Where(mod.Name(modName)).Only(context.Background())
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		var dir string
-		var pIdx int
-		if len(mod.Paks) > 1 {
-			for pi, p := range mod.Paks {
-				if p.Installed {
-					splitPak := strings.Split(p.Name, string(os.PathSeparator))
-					_x := splitPak[len(splitPak)-1]
-					dir = path.Join(paksDir, _x)
-					pIdx = pi
-				}
-			}
-		} else {
-			p := mod.Paks[0]
+		paks := m.QueryPaks().AllX(context.Background())
+
+		// var dir string
+		var paksToDisable []pakToDisable
+
+		for _, p := range paks {
 			if p.Installed {
-				dir = path.Join(paksDir, p.Name)
-				pIdx = 0
+				splitPak := strings.Split(p.Name, string(os.PathSeparator))
+				_x := splitPak[len(splitPak)-1]
+				paksToDisable = append(paksToDisable, pakToDisable{id: p.ID, dir: path.Join(paksDir, _x), mId: m.ID})
 			}
-
 		}
 
-		_, err = os.Lstat(dir)
+		for _, pd := range paksToDisable {
 
-		// check if symlink is in dir
-		if !os.IsNotExist(err) {
-			// remove symlink (if it's there)
-			err := os.Remove(dir)
+			_, err = os.Lstat(pd.dir)
 
-			fmt.Println("Symlink removed")
+			// check if symlink is in dir
+			if !os.IsNotExist(err) {
+				// remove symlink (if it's there)
+				err := os.Remove(pd.dir)
 
-			if err != nil {
-				log.Fatal(err)
+				fmt.Println("Symlink removed")
+
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				fmt.Println("Path doesn't exist: " + pd.dir)
 			}
-		} else {
-			fmt.Println("Path doesn't exist: " + dir)
+
+			// Update state to signify the mod is inactive
+			db.Client().Mod.Update().Where(mod.ID(pd.mId)).SetState("inactive")
 		}
-
-		// Update state to signify the mod is inactive
-		state.Mods[mIdx].State = "inactive"
-		state.Mods[mIdx].Paks[pIdx].Installed = false
-
-		statemanagement.WriteState(state, config.GetConfig())
-
 	}
 
 }

@@ -14,6 +14,7 @@ func SplitModPath(p string) string {
 	return s
 }
 
+// Remove absolute file leaving the file name itself
 func SplitArchivePath(p string) string {
 	s := strings.Split(p, path.Join(config.GetConfig().ModDir, "archives")+"/")[1]
 
