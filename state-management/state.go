@@ -147,7 +147,7 @@ func listArchives(modDir string) []string {
 	return archives
 }
 
-// cecks or state setup prior to running the application
+// checks or state setup prior to running the application
 func PreflightChecks() {
 	// var ex string
 	ex := config.ConfPath
@@ -182,7 +182,6 @@ func PreflightChecks() {
 
 		if !archiveExists {
 			// Write to disk
-			fmt.Println(archivePath)
 			_, err := archiveModel.
 				Create().
 				SetName(name).
