@@ -87,7 +87,6 @@ func Activate(modsToActivate map[int]string) {
 		}
 
 		paks, err := m.QueryPaks().All(context.Background())
-		// m, _, _ := statemanagement.GetModByName(modName)
 
 		if err != nil {
 			log.Fatalf("Error getting paks", err)
