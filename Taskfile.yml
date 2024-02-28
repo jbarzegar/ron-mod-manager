@@ -3,7 +3,10 @@ version: '3'
 vars:
   MODULE_BASE_PATH: "github.com/jbarzegar/ron-mod-manager" 
   RON_MM_CONFIG_DIR: "{{.HOME}}/.config/ron-mod-manager"
-  LDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
+  CFGLDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
+
+  DB_CONFIG_PATH: "{{.HOME}}/.local/state/ron-mod-manager/ron-mod-manager-state.sqlite"
+  DBLDFLAGS: "{{.MODULE_BASE_PATH}}/config.DBPath={{.DB_CONFIG_PATH}}"
   GO_OUTPUT: "./dist/ron-mod-manager"
 
 
@@ -11,7 +14,7 @@ vars:
 tasks:
   build:  
     cmds:
-      - go build -v -ldflags "-X "{{.LDFLAGS}}"" -o "{{.GO_OUTPUT}}" .
+      - go build -v -ldflags "-X {{.CFGLDFLAGS}} -X {{.DBLDFLAGS}}" -o "{{.GO_OUTPUT}}" .
       
   install:
     description: "Install to bin location"
@@ -20,14 +23,17 @@ tasks:
     cmds:
       - task: build
       - mkdir -p {{.BIN_LOCATION}}
+      - mkdir -p {{.HOME}}/.local/state/ron-mod-manager
       - mv {{.GO_OUTPUT}} {{.BIN_LOCATION}}/ron-mod-manager
 
   dev:
     vars:
       RON_MM_CONFIG_DIR: "./test/.conf"
-      LDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
+      DB_CONFIG_PATH: "test/.conf/ron-mod-manager-state.sqlite"
+      DBLDFLAGS: "{{.MODULE_BASE_PATH}}/config.DBPath={{.DB_CONFIG_PATH}}"
+      CFGLDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
     cmds:
-      - go run -ldflags "-X {{.LDFLAGS}}" . {{.CLI_ARGS}}
+      - go run -ldflags "-X {{.CFGLDFLAGS}} -X {{.DBLDFLAGS}}" . {{.CLI_ARGS}}
 
   ent:
     cmds:

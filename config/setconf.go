@@ -11,6 +11,8 @@ var conf types.MMConfig
 
 var ConfPath string
 
+var DBPath string
+
 func ReadConfFile(p string) types.MMConfig {
 	file, err := os.ReadFile(p)
 

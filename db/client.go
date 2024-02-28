@@ -3,8 +3,10 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
+	"github.com/jbarzegar/ron-mod-manager/config"
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/ent/archive"
 )
@@ -25,8 +27,8 @@ func InitClient() (*ent.Client, error) {
 		return nil, errors.New("client-already-connected")
 	}
 
-	// mode=memory&
-	client, err := ent.Open("sqlite3", "file:ent.sqlite?cache=shared&_fk=1")
+	cfgStr := fmt.Sprintf("file:%v?cache=shared&_fk=1", config.DBPath)
+	client, err := ent.Open("sqlite3", cfgStr)
 
 	if err != nil {
 		log.Fatalf("Failed to connect to sqlite", err)
