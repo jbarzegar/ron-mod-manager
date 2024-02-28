@@ -103,7 +103,6 @@ func Activate(modsToActivate map[int]string) {
 			}
 
 			choices := components.SelectMod(pakNames)
-			// state := statemanagement.GetState()
 			mods := db.Client().Mod.Query().AllX(context.Background())
 
 			// TODO: linkPak(m, p, modName) should handle recursive mod installs
@@ -131,7 +130,6 @@ func Activate(modsToActivate map[int]string) {
 				} else {
 					for _, q := range mods {
 						if q.Name == modName {
-							// state.Mods[i].State = "active"
 							db.Client().Mod.
 								Update().
 								Where(mod.ID(q.ID)).

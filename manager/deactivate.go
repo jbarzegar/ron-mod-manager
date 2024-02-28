@@ -20,12 +20,10 @@ type pakToDisable struct {
 }
 
 func Deactivate(modsToDeactivate map[int]string) {
-	// state := statemanagement.GetState()
 	paksDir := paths.PaksDir()
 
 	for _, modName := range modsToDeactivate {
 		// Get mod out of state
-		// mod, mIdx, err := statemanagement.GetModByName(m)
 		m, err := db.Client().
 			Mod.
 			Query().
