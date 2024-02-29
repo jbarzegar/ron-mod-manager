@@ -37,4 +37,4 @@ tasks:
 
   ent:
     cmds:
-      - go run -mod=mod entgo.io/ent/cmd/ent {{.CLI_ARGS}} 
+      - go run -mod=mod entgo.io/ent/cmd/ent {{.CLI_ARGS}}
