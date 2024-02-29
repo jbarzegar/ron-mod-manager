@@ -4,11 +4,13 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/jbarzegar/ron-mod-manager/db"
 	"github.com/jbarzegar/ron-mod-manager/manager"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,10 +23,14 @@ type model struct {
 }
 
 func initialModel() model {
-	state := statemanagement.GetState()
+	mods, err := db.Client().Mod.Query().All(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var choices []string
-	for _, mod := range state.Mods {
+	for _, mod := range mods {
 		choices = append(choices, mod.Name)
 	}
 

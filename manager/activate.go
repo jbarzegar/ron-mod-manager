@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -8,23 +9,29 @@ import (
 	"strings"
 
 	"github.com/jbarzegar/ron-mod-manager/components"
-	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent"
+	"github.com/jbarzegar/ron-mod-manager/ent/mod"
+	"github.com/jbarzegar/ron-mod-manager/ent/pak"
 	"github.com/jbarzegar/ron-mod-manager/paths"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
-	"github.com/jbarzegar/ron-mod-manager/types"
 )
 
-func linkPak(m *types.ModInstall, p types.Pak, modName string) {
-	state := statemanagement.GetState()
+func linkPak(m *ent.Mod, p *ent.Pak, modName string) {
+	mods, err := db.Client().Mod.Query().All(context.Background())
 	absPakModPath := path.Join(paths.AbsModsDir(), m.Name, p.Name)
 	absPakGamePath := paths.PaksDir()
 
-	_, err := os.Stat(path.Join(absPakGamePath, p.Name))
+	_, err = os.Stat(path.Join(absPakGamePath, p.Name))
 
 	if !os.IsNotExist(err) {
+
+		if err != nil {
+			log.Fatalf("Error getting mods", err)
+		}
+
 		// Search all mods and see if the new mod was installed already
 		// Account for mods that were installed by ron-mm
-		for _, q := range state.Mods {
+		for _, q := range mods {
 			if q.Name == modName && q.State == "active" {
 				fmt.Println("Mod already installed")
 				return
@@ -34,21 +41,29 @@ func linkPak(m *types.ModInstall, p types.Pak, modName string) {
 		fmt.Println("Mod installed outside of ron-mm's delete mod prior to activating")
 
 	} else {
-		for i, q := range state.Mods {
+		for _, q := range mods {
 			if q.Name == modName {
-				state.Mods[i].State = "active"
+				m, err := db.Client().Mod.Query().Where(mod.ID(q.ID)).Only(context.Background())
 
-				for ii, o := range state.Mods[i].Paks {
-					if p.Name == o.Name {
-						state.Mods[i].Paks[ii].Installed = true
-					}
-
+				if err != nil {
+					log.Fatalf("Error getting mod", err)
 				}
+
+				updater := m.Update().SetState("active")
+				for _, o := range m.QueryPaks().AllX(context.Background()) {
+					if p.Name == o.Name {
+						o.Update().
+							Where(pak.ID(o.ID)).
+							SetInstalled(true).
+							SaveX(context.Background())
+					}
+				}
+
+				updater.Save(context.Background())
 				break
 			}
 		}
 
-		statemanagement.WriteState(state, config.GetConfig())
 		err = os.Symlink(absPakModPath, path.Join(absPakGamePath, p.Name))
 
 		if err != nil {
@@ -63,20 +78,32 @@ func Activate(modsToActivate map[int]string) {
 	fmt.Println("activating mods ")
 
 	for _, modName := range modsToActivate {
-		m, _, _ := statemanagement.GetModByName(modName)
+		m, err := db.Client().Mod.Query().
+			Where(mod.Name(modName)).
+			Only(context.Background())
 
-		if len(m.Paks) == 1 {
-			p := m.Paks[0]
+		if err != nil {
+			log.Fatalf("Error getting paks", err)
+		}
+
+		paks, err := m.QueryPaks().All(context.Background())
+
+		if err != nil {
+			log.Fatalf("Error getting paks", err)
+		}
+
+		if len(paks) == 1 {
+			p := paks[0]
 			linkPak(m, p, modName)
 
 		} else {
-			var paks []string
-			for _, p := range m.Paks {
-				paks = append(paks, p.Name)
+			var pakNames []string
+			for _, p := range paks {
+				pakNames = append(pakNames, p.Name)
 			}
 
-			choices := components.SelectMod(paks)
-			state := statemanagement.GetState()
+			choices := components.SelectMod(pakNames)
+			mods := db.Client().Mod.Query().AllX(context.Background())
 
 			// TODO: linkPak(m, p, modName) should handle recursive mod installs
 			for _, p := range choices {
@@ -91,7 +118,7 @@ func Activate(modsToActivate map[int]string) {
 				if !os.IsNotExist(err) {
 					// Search all mods and see if the new mod was installed already
 					// Account for mods that were installed by ron-mm
-					for _, q := range state.Mods {
+					for _, q := range mods {
 						if q.Name == modName && q.State == "active" {
 							fmt.Println("Mod already installed")
 							return
@@ -101,13 +128,31 @@ func Activate(modsToActivate map[int]string) {
 					fmt.Println("Mod installed outside of ron-mm's delete mod prior to activating")
 
 				} else {
-					for i, q := range state.Mods {
+					for _, q := range mods {
 						if q.Name == modName {
-							state.Mods[i].State = "active"
+							db.Client().Mod.
+								Update().
+								Where(mod.ID(q.ID)).
+								SetState("active").
+								Save(context.Background())
 
-							for ii, o := range state.Mods[i].Paks {
+							paks := db.Client().Mod.
+								Query().
+								Where(mod.ID(q.ID)).
+								QueryPaks().
+								AllX(context.Background())
+
+							for _, o := range paks {
 								if p == o.Name {
-									state.Mods[i].Paks[ii].Installed = true
+									fmt.Println(o.ID, o.Name)
+									_, err := db.Client().Pak.
+										Update().
+										Where(pak.ID(o.ID)).
+										SetInstalled(true).
+										Save(context.Background())
+									if err != nil {
+										log.Fatal(err)
+									}
 									break
 								}
 							}
@@ -115,7 +160,6 @@ func Activate(modsToActivate map[int]string) {
 						}
 					}
 
-					statemanagement.WriteState(state, config.GetConfig())
 					err = os.Symlink(absPakModPath, x)
 
 					if err != nil {

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -8,22 +9,43 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/jbarzegar/ron-mod-manager/config"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent"
+	"github.com/jbarzegar/ron-mod-manager/ent/archive"
 	"github.com/jbarzegar/ron-mod-manager/paths"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/jbarzegar/ron-mod-manager/types"
 	"github.com/jbarzegar/ron-mod-manager/utils"
 )
 
 func Install(n string) {
-	state := statemanagement.GetState()
 	absArchivePath := path.Join(paths.AbsArchiveDir(), n)
 
-	archive, idx, _ := statemanagement.GetArchiveByName(n)
+	arh, err := db.Client().
+		Archive.
+		Query().
+		Where(archive.ArchivePath(absArchivePath)).
+		Only(context.Background())
 
-	absModPath := path.Join(paths.AbsModsDir(), archive.Name)
+	if err != nil {
+		log.Fatalf("Err fetching archive %s", err)
+	}
 
-	err := utils.ExtractArchive(absArchivePath, absModPath, false)
+	if arh == nil {
+		log.Fatal("Could not find archive", n)
+	}
+
+	_, err = os.Stat(absArchivePath)
+	if arh.Installed && !os.IsNotExist(err) {
+		fmt.Println("Mod already installed")
+		return
+	}
+
+	absModPath := path.Join(paths.AbsModsDir(), arh.Name)
+
+	fmt.Println(absArchivePath, absModPath)
+
+	err = utils.ExtractArchive(absArchivePath, absModPath, false)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,32 +72,59 @@ func Install(n string) {
 		return nil
 	})
 
-	mod := types.ModInstall{ArchiveName: n, Name: archive.Name, Paks: []types.Pak{}, State: "inactive"}
+	mod := types.ModInstall{ArchiveName: n,
+		Name: arh.Name, Paks: []types.Pak{}, State: "inactive"}
 
 	for _, m := range matches {
 		relPakPath := strings.Split(m, absModPath+"/")[1]
 		mod.Paks = append(mod.Paks, types.Pak{Name: relPakPath, Installed: false})
 	}
 
-	// Look through state to see if mod is already installed
-	installed := false
-	for _, x := range state.Mods {
-		if x.Name == archive.Name {
-			archive.Installed = true
-			installed = true
-			break
-		}
+	// Install mod
+	m, err := db.Client().Mod.Create().
+		SetName(mod.Name).
+		SetState("inactive").
+		SetArchive(arh).
+		Save(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	// -----
+
+	// Install Paks from Mod
+	_, err = db.Client().
+		Pak.
+		MapCreateBulk(mod.Paks, func(c *ent.PakCreate, idx int) {
+			p := mod.Paks[idx]
+			c.SetName(p.Name).SetInstalled(p.Installed).SetMod(m)
+		}).Save(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	// -----
+
+	// Update Archive to be installed
+	_, err = arh.
+		Update().
+		Where(archive.ID(arh.ID)).
+		SetInstalled(true).
+		Save(context.Background())
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if !installed {
-		state.Archives[idx].Installed = true
-		// append mod and write to state
-		state.Mods = append(state.Mods, mod)
-		statemanagement.WriteState(state, config.GetConfig())
+	fmt.Println("Mod installed")
 
-		fmt.Println("Mod installed")
-	} else {
-		fmt.Println("Mod already installed")
+	x, _ := db.Client().Mod.Query().All(context.Background())
+
+	for _, w := range x {
+		q, _ := w.QueryPaks().All(context.Background())
+		for _, qq := range q {
+			fmt.Println(qq)
+		}
 	}
 
 }

@@ -4,9 +4,12 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
+
 	"github.com/jbarzegar/ron-mod-manager/components"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent/mod"
 	"github.com/jbarzegar/ron-mod-manager/manager"
-	s "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +26,10 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Show select to determine which mods to deactivate.
 		// Choices will only display active mods in the view
-		activeMods := s.GetModsByState("active")
+		activeMods := db.Client().Mod.
+			Query().
+			Where(mod.State("active")).
+			AllX(context.Background())
 
 		var choices []string
 		for _, m := range activeMods {
