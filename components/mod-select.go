@@ -107,7 +107,7 @@ func (m ModModel) View() string {
 }
 
 func SelectMod(choices []string) map[int]string {
-	p := tea.NewProgram(selectModInitialModel(choices))
+	p := tea.NewProgram(selectModInitialModel(choices), tea.WithAltScreen())
 
 	r, err := p.Run()
 

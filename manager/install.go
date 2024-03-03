@@ -23,7 +23,7 @@ func Install(n string) {
 	arh, err := db.Client().
 		Archive.
 		Query().
-		Where(archive.ArchivePath(absArchivePath)).
+		Where(archive.Name(absArchivePath)).
 		Only(context.Background())
 
 	if err != nil {

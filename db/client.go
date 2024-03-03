@@ -9,6 +9,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/config"
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/ent/archive"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var _Client *ent.Client = nil

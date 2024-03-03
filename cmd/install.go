@@ -4,9 +4,13 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
+	"log"
+
 	"github.com/jbarzegar/ron-mod-manager/components"
+	"github.com/jbarzegar/ron-mod-manager/db"
+	"github.com/jbarzegar/ron-mod-manager/ent/archive"
 	"github.com/jbarzegar/ron-mod-manager/manager"
-	statemanagement "github.com/jbarzegar/ron-mod-manager/state-management"
 	"github.com/spf13/cobra"
 )
 
@@ -24,11 +28,19 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	// TODO: Allow for multiple mods to be installed?
 	Run: func(cmd *cobra.Command, args []string) {
-		state := statemanagement.GetState()
+		archives, err := db.Client().
+			Archive.
+			Query().
+			Where(archive.Not(archive.Installed(true))).
+			All(context.Background())
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		var choices []string
-		for _, a := range state.Archives {
-			choices = append(choices, a.ArchiveFile)
+		for _, a := range archives {
+			choices = append(choices, a.Name)
 		}
 
 		selected := components.SelectMod(choices)

@@ -65,7 +65,7 @@ func Deactivate(modsToDeactivate map[int]string) {
 			}
 
 			// Update state to signify the mod is inactive
-			db.Client().Mod.Update().Where(mod.ID(pd.mId)).SetState("inactive")
+			db.Client().Mod.Update().Where(mod.ID(pd.mId)).SetState("inactive").Save(context.Background())
 		}
 	}
 
