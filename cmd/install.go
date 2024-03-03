@@ -31,7 +31,7 @@ to quickly create a Cobra application.`,
 		archives, err := db.Client().
 			Archive.
 			Query().
-			Where(archive.Not(archive.Installed(true))).
+			Where(archive.InstalledEQ(false)).
 			All(context.Background())
 
 		if err != nil {

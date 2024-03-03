@@ -18,12 +18,11 @@ import (
 )
 
 func Install(n string) {
-	absArchivePath := path.Join(paths.AbsArchiveDir(), n)
 
 	arh, err := db.Client().
 		Archive.
 		Query().
-		Where(archive.Name(absArchivePath)).
+		Where(archive.Name(n)).
 		Only(context.Background())
 
 	if err != nil {
@@ -33,6 +32,9 @@ func Install(n string) {
 	if arh == nil {
 		log.Fatal("Could not find archive", n)
 	}
+
+	// absArchivePath := path.Join(paths.AbsArchiveDir(), n)
+	absArchivePath := arh.ArchivePath
 
 	_, err = os.Stat(absArchivePath)
 	if arh.Installed && !os.IsNotExist(err) {
