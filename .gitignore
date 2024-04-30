@@ -4,3 +4,4 @@ ent/*
 ent.sqlite
 
 !ent/schema
+!ent/generate.go
