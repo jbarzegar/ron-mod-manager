@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  install:
+    cmds:
+      - "echo $PWD && bun install"
+  dev:
+    cmds:
+      - "bun run tauri dev"
+  storybook:
+    cmds:
+      - "bun run storybook"

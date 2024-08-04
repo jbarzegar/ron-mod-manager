@@ -1,31 +1,34 @@
-import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
-import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import { Archive, ArchivesPanel, ArchivesViewProps } from "./panels/archives";
+import { Mod, ModsPanel, ModItemProps, ModsPanelProps } from "./panels/mods";
 
-interface Archive {
-  id: string
-  name: string
+interface AppProps {
+  mods: {
+    items: Mod[];
+    handleDelete: ModsPanelProps["onDelete"];
+    handleUpdate: ModsPanelProps["onUpdate"];
+  };
+  archives: {
+    items: Archive[];
+    handleInstall: ArchivesViewProps["onArchiveInstall"];
+    handleUninstall: ArchivesViewProps["onArchiveUninstall"];
+  };
 }
 
-const mockArchives = new Array(10).fill(null).map<Archive>((_, i) => ({ id: `${i}`, name: `Mock Archive ${i}` }))
-
-function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: name() }));
-  }
-
+function App({ mods, archives }: AppProps) {
   return (
-    <div class="container">
-
-      <ul>
-        {mockArchives.map(x => <li>{x.name}</li>)}
-      </ul>
-
+    <div class="h-full absolute top-0 bottom-0 left-0 right-0">
+      <div class="flex h-full gap-3">
+        <ModsPanel
+          mods={mods.items}
+          onDelete={mods.handleDelete}
+          onUpdate={mods.handleUpdate}
+        />
+        <ArchivesPanel
+          archives={archives.items}
+          onArchiveInstall={archives.handleInstall}
+          onArchiveUninstall={archives.handleUninstall}
+        />
+      </div>
     </div>
   );
 }

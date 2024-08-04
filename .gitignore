@@ -4,3 +4,7 @@ ent/*
 ent.sqlite
 
 !ent/schema
+
+*storybook.log
+
+node_modules

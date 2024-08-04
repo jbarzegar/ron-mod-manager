@@ -1,7 +1,7 @@
-version: '3'
+version: "3"
 
 vars:
-  MODULE_BASE_PATH: "github.com/jbarzegar/ron-mod-manager" 
+  MODULE_BASE_PATH: "github.com/jbarzegar/ron-mod-manager"
   RON_MM_CONFIG_DIR: "{{.HOME}}/.config/ron-mod-manager"
   CFGLDFLAGS: "{{.MODULE_BASE_PATH}}/config.ConfPath={{.RON_MM_CONFIG_DIR}}"
 
@@ -9,16 +9,14 @@ vars:
   DBLDFLAGS: "{{.MODULE_BASE_PATH}}/config.DBPath={{.DB_CONFIG_PATH}}"
   GO_OUTPUT: "./dist/ron-mod-manager"
 
-
-
 tasks:
-  build:  
+  build:
     cmds:
       - go build -v -ldflags "-X {{.CFGLDFLAGS}} -X {{.DBLDFLAGS}}" -o "{{.GO_OUTPUT}}" .
-      
+
   install:
     description: "Install to bin location"
-    vars: 
+    vars:
       BIN_LOCATION: "{{.HOME}}/.bin/ron-mm"
     cmds:
       - task: build
