@@ -1,3 +1,4 @@
+import { For } from 'solid-js'
 import { Panel } from "@/components/panel";
 
 export interface Archive {
@@ -20,17 +21,20 @@ export const ArchivesPanel = (p: ArchivesViewProps) => {
   return (
     <Panel title="Archives" color="red">
       <ul class="flex flex-col gap-3">
-        {p.archives.map((archive, index) => (
-          <li
-            class="flex gap-2"
-            onDblClick={handleDoubleClick(index, archive.installed)}
-          >
-            {archive.name}{" "}
-            {archive.installed && (
-              <p class="color-green-500 ml-3">[Installed]</p>
-            )}
-          </li>
-        ))}
+        <For each={p.archives}>
+          {(archive, index) => (
+            <li
+              class="flex gap-2"
+              onDblClick={handleDoubleClick(index(), archive.installed)}
+            >
+              {archive.name}{" "}
+              {archive.installed && (
+                <p class="color-green-500 ml-3">[Installed]</p>
+              )}
+            </li>
+
+          )}
+        </For>
       </ul>
     </Panel>
   );

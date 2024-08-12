@@ -1,4 +1,5 @@
 import { Panel } from "@/components/panel";
+import { For } from "solid-js";
 
 // Entity of a Mod in the frontend
 export interface Mod {
@@ -42,13 +43,16 @@ export const ModsPanel = (p: ModsPanelProps) => {
   return (
     <Panel title="Mods" color="green">
       <ul class="list-none gap-3 flex flex-col">
-        {p.mods.map((x, i) => (
-          <ModItem
-            mod={x}
-            onUpdate={(x) => p.onUpdate(i, x)}
-            onDelete={() => p.onDelete(i)}
-          />
-        ))}
+        <For each={p.mods}>
+          {(x, i) => (
+            <ModItem
+              mod={x}
+              onUpdate={(x) => p.onUpdate(i(), x)}
+              onDelete={() => p.onDelete(i())}
+            />
+
+          )}
+        </For>
       </ul>
     </Panel>
   );
