@@ -4,6 +4,11 @@ tasks:
   install:
     cmds:
       - "echo $PWD && bun install"
+  fmt:
+    sources:
+      - "./src/**/*"
+    cmds:
+      - "npx prettier -w src"
   dev:
     cmds:
       - "bun run tauri dev"

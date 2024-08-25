@@ -8,3 +8,4 @@ ent.sqlite
 *storybook.log
 
 node_modules
+.task
