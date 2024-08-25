@@ -1,4 +1,4 @@
-import { For } from 'solid-js'
+import { For } from "solid-js";
 import { Panel } from "@/components/panel";
 
 export interface Archive {
@@ -32,7 +32,6 @@ export const ArchivesPanel = (p: ArchivesViewProps) => {
                 <p class="color-green-500 ml-3">[Installed]</p>
               )}
             </li>
-
           )}
         </For>
       </ul>

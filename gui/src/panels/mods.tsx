@@ -21,7 +21,7 @@ const ModItem = (p: ModItemProps) => {
       <input
         type="checkbox"
         checked={p.mod.active}
-        onChange={(e) => p.onUpdate({ active: !e.currentTarget.checked })}
+        onChange={() => p.onUpdate({ active: !p.mod.active })}
         readOnly
       />{" "}
       <p>{p.mod.name}</p>
@@ -50,7 +50,6 @@ export const ModsPanel = (p: ModsPanelProps) => {
               onUpdate={(x) => p.onUpdate(i(), x)}
               onDelete={() => p.onDelete(i())}
             />
-
           )}
         </For>
       </ul>
