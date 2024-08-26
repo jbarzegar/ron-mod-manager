@@ -17,20 +17,19 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/utils"
 )
 
-func Install(n string) {
-
+// Register an archive with the given string as a path to the archive
+func Install(archivePath string) {
 	arh, err := db.Client().
 		Archive.
 		Query().
-		Where(archive.Name(n)).
+		Where(archive.Name(archivePath)).
 		Only(context.Background())
-
 	if err != nil {
 		log.Fatalf("Err fetching archive %s", err)
 	}
 
 	if arh == nil {
-		log.Fatal("Could not find archive", n)
+		log.Fatal("Could not find archive", archivePath)
 	}
 
 	// absArchivePath := path.Join(paths.AbsArchiveDir(), n)
@@ -47,7 +46,6 @@ func Install(n string) {
 	fmt.Println(absArchivePath, absModPath)
 
 	err = utils.ExtractArchive(absArchivePath, absModPath, false)
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,8 +72,10 @@ func Install(n string) {
 		return nil
 	})
 
-	mod := types.ModInstall{ArchiveName: n,
-		Name: arh.Name, Paks: []types.Pak{}, State: "inactive"}
+	mod := types.ModInstall{
+		ArchiveName: archivePath,
+		Name:        arh.Name, Paks: []types.Pak{}, State: "inactive",
+	}
 
 	for _, m := range matches {
 		relPakPath := strings.Split(m, absModPath+"/")[1]
@@ -88,7 +88,6 @@ func Install(n string) {
 		SetState("inactive").
 		SetArchive(arh).
 		Save(context.Background())
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,7 +100,6 @@ func Install(n string) {
 			p := mod.Paks[idx]
 			c.SetName(p.Name).SetInstalled(p.Installed).SetMod(m)
 		}).Save(context.Background())
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,7 +111,6 @@ func Install(n string) {
 		Where(archive.ID(arh.ID)).
 		SetInstalled(true).
 		Save(context.Background())
-
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,5 +125,4 @@ func Install(n string) {
 			fmt.Println(qq)
 		}
 	}
-
 }
