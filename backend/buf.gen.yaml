@@ -1,0 +1,15 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/jbarzegar/ron-mod-manager/rpc
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: rpc
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go
+    out: rpc
+    opt: paths=source_relative
+inputs:
+  - directory: rpc

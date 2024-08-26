@@ -15,7 +15,7 @@ tasks:
       - go build -v -ldflags "-X {{.CFGLDFLAGS}} -X {{.DBLDFLAGS}}" -o "{{.GO_OUTPUT}}" .
 
   install:
-    description: "Install to bin location"
+    desc: "Install to bin location"
     vars:
       BIN_LOCATION: "{{.HOME}}/.bin/ron-mm"
     cmds:
@@ -36,3 +36,8 @@ tasks:
   ent:
     cmds:
       - go run -mod=mod entgo.io/ent/cmd/ent {{.CLI_ARGS}}
+
+  gen-rpc:
+    desc: "Generate the RPC client's protos"
+    cmds:
+      - "buf generate || echo failed to generate"

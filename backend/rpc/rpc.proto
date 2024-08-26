@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "github.com/jbarzegar/ron-mod-manager/rpc";
+
+package rpc;
+
+service RPC {
+    // Emits event to have core install a zip file as an archive
+    rpc InstallArchive (InstallArchiveRequest) returns (InstallArchiveReply) {}
+}
+
+message InstallArchiveRequest {
+    string modPath = 1;
+}
+
+message InstallArchiveReply {
+    bool status = 1;
+}
+
+
