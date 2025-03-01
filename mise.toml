@@ -1,0 +1,5 @@
+[tools]
+go = "1.24"
+[tasks.build]
+description = "Create entviz"
+run = "go run -mod=mod ariga.io/entviz --help"
