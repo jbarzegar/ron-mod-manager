@@ -3,7 +3,6 @@ package appconfig
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path"
 )
@@ -41,7 +40,7 @@ func validateModDir(dir string) error {
 			fmt.Println(d, "doesn't exist, creating")
 			err = os.MkdirAll(d, 0700)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 		}

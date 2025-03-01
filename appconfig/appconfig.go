@@ -48,7 +48,7 @@ func ensureConfig(confPath string) (AppConfig, error) {
 		if err := validateRonDir(cfg.GameDir); err != nil {
 			return AppConfig{}, err
 		}
-		//
+
 		// validate mod dir
 		if err := validateModDir(cfg.ModDir); err != nil {
 			return AppConfig{}, err
