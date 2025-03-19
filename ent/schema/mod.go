@@ -46,6 +46,3 @@ func (Mod) Edges() []ent.Edge {
 		edge.To("versions", ModVersion.Type),
 	}
 }
-
-// mod [ ]
-// { name = "asdf", instances = [ { version: }]}

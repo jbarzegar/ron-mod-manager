@@ -84,8 +84,7 @@ func Setup() error {
 		return err
 	}
 
-	_, err := ensureConfig(configFilePath)
-	if err != nil {
+	if _, err := ensureConfig(configFilePath); err != nil {
 		return err
 	}
 	// todo resync stuff?

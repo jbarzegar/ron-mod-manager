@@ -34,7 +34,7 @@ func extract7ZArchive(src string, dest string, overwrite bool) error {
 
 	for _, f := range r.File {
 		filePath := filepath.Join(dest, f.Name)
-		slog.Debug("unzipping file ", filePath)
+		// slog.Debug("unzipping file %v", filePath)
 
 		if !strings.HasPrefix(filePath, filepath.Clean(dest)+string(os.PathSeparator)) {
 			slog.Warn("invalid file path")
