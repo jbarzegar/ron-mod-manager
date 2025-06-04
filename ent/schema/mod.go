@@ -21,7 +21,7 @@ func (Mod) Fields() []ent.Field {
 	return []ent.Field{
 		// Display name of the overall mod.
 		// This is not to be confused with the archive name
-		field.String("name"),
+		field.String("name").Unique(),
 		// determines if the mod is considered "installed"
 		field.Enum("state").
 			Values("activate", "inactive"),

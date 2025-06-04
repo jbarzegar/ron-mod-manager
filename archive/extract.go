@@ -86,7 +86,6 @@ func Extract(src string, dest string, overwrite bool) error {
 			return extract7ZArchive(src, dest, overwrite)
 		} else {
 			err := archiver.Unarchive(src, dest)
-
 			return err
 
 		}

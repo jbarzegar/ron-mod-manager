@@ -16,6 +16,13 @@ type AppConfig struct {
 	ModDir  string `json:"modDir"`
 }
 
+var (
+	ErrConfigDoesNotExist error = errors.New("config does not exist")
+)
+
+var appConfig *AppConfig = nil
+var confPath = "./test/"
+
 func writeConfigFile(confFile string, config AppConfig) error {
 	b, err := json.Marshal(config)
 	if err != nil {
@@ -27,6 +34,10 @@ func writeConfigFile(confFile string, config AppConfig) error {
 		log.Fatal(err)
 		return err
 	}
+
+	// update runtime config
+	appConfig = &config
+
 	return nil
 }
 
@@ -54,6 +65,8 @@ func ensureConfig(confPath string) (AppConfig, error) {
 			return AppConfig{}, err
 		}
 
+		appConfig = &cfg
+
 		return cfg, nil
 	}
 }
@@ -69,24 +82,42 @@ func readConfFile(cfgPath string) (AppConfig, error) {
 		return AppConfig{}, err
 	}
 
+	appConfig = &cfg
+
 	return cfg, nil
 }
 
-func Setup() error {
-	confPath := "./test/"
+func createConfPath() string {
+	configFilePath := path.Join(confPath, "ron-mm.conf.json")
+	return configFilePath
+}
 
+func Read() (*AppConfig, error) {
+	if appConfig == nil {
+		return nil, ErrConfigDoesNotExist
+	}
+
+	return appConfig, nil
+}
+
+func Setup() error {
 	// Detect and setup config
 	// Create instance dir structure
 	// generate initial state file
-	configFilePath := path.Join(confPath, "ron-mm.conf.json")
+	configFilePath := createConfPath()
 
 	if err := os.MkdirAll(confPath, 0700); err != nil {
 		return err
 	}
 
-	if _, err := ensureConfig(configFilePath); err != nil {
+	cfg, err := ensureConfig(configFilePath)
+
+	if err != nil {
 		return err
 	}
+
+	// assign config
+	appConfig = &cfg
 	// todo resync stuff?
 
 	return nil

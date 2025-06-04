@@ -1,5 +1,10 @@
 [tools]
 go = "1.24"
+watchexec = "latest"
+atlas = "latest"
+
+[env]
+CGO_ENABLED = "1"
 
 
 [tasks.entviz]
@@ -9,3 +14,10 @@ run = "go run -mod=mod ariga.io/entviz ./ent/schema"
 [tasks.genent]
 description = "Generate ent code"
 run = "go generate ./ent"
+
+[tasks.dev]
+description = "Run code"
+run = "go run main.go"
+
+[tasks.migrate]
+run = 'atlas migrate apply --dir "file://ent/migrate/migrations" --url "sqlite://test/test.sqlite?_fk=1"'

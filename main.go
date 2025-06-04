@@ -13,7 +13,7 @@ import (
 )
 
 func setupDb() (*ent.Client, error) {
-	cfg := fmt.Sprintf("file:%v?cache=shared&_fk=1", "test.sqlite")
+	cfg := fmt.Sprintf("file:%v?cache=shared&_fk=1", "test/test.sqlite")
 
 	client, err := ent.Open(
 		"sqlite3",
@@ -29,11 +29,13 @@ func main() {
 		os.Exit(1)
 	}
 	// pre flight setup
-	appconfig.Setup()
-	//
-	//
-	//
-	//
+	slog.Info("setting up config")
+	if err := appconfig.Setup(); err != nil {
+		slog.Error("error setting up config")
+		log.Fatal(err)
+	}
+	slog.Info("appconfig setup")
+
 	// start server
 	if _, err := server.CreateServer(db); err != nil {
 		log.Fatal(err)
