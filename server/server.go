@@ -1,23 +1,19 @@
+// server handles the transport layer for communicating with ron-mod-manager's core logic
+// currently the only supported transport is HTTP
+// It may be moved to grpc when i get around to it, maybe in the next 10 years :D
 package server
 
 import (
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/handler"
-	"github.com/jbarzegar/ron-mod-manager/handlerio"
 )
 
-func CreateServer(db *ent.Client) (*fiber.App, error) {
+// CreateHTTPServer starts the HTTP server supplying an instance of the application db client and core logic handler
+func CreateHTTPServer(db *ent.Client, h handler.Handler) (*fiber.App, error) {
 	app := fiber.New()
-	appConf, err := appconfig.Read()
-	if err != nil {
-		return nil, err
-	}
-	iohandler := handlerio.NewFileSystemHandler()
-	h := handler.NewHandler(db, appConf, iohandler)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("ron-mm server running")

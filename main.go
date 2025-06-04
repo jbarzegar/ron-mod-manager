@@ -8,6 +8,8 @@ import (
 
 	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/ent"
+	"github.com/jbarzegar/ron-mod-manager/handler"
+	"github.com/jbarzegar/ron-mod-manager/handlerio"
 	"github.com/jbarzegar/ron-mod-manager/server"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -36,8 +38,18 @@ func main() {
 	}
 	slog.Info("appconfig setup")
 
+	appConf, err := appconfig.Read()
+	if err != nil {
+		slog.Error("error reading app config")
+		log.Fatal(err)
+	}
+
+	// setup handlers for transport layer
+	iohandler := handlerio.NewFileSystemHandler()
+	h := handler.NewHandler(db, appConf, iohandler)
+
 	// start server
-	if _, err := server.CreateServer(db); err != nil {
+	if _, err := server.CreateHTTPServer(db, h); err != nil {
 		log.Fatal(err)
 	} else {
 		slog.Info("Server started")
