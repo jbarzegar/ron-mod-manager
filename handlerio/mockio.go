@@ -3,13 +3,16 @@ package handlerio
 import "github.com/jbarzegar/ron-mod-manager/archive"
 
 // MockIOHandler is a stubbed version of an IOHandler
-type MockIOHandler struct{}
-
-func NewMockIOHandler() MockIOHandler {
-	return MockIOHandler{}
+type MockIOHandler struct {
+	mockedChoices []archive.Choice
 }
 
-// TODO: Figure out how to pass choices during init
+func NewMockIOHandler(archiveChoices []archive.Choice) MockIOHandler {
+	return MockIOHandler{mockedChoices: archiveChoices}
+}
+
+// AddMod will return the mocked choices assigned on struct init
+// we assume that `NewMockIoHandler` is used once per test so can assume choices provided are for a specific "mod"
 func (h *MockIOHandler) AddMod(archivePath string, outputPath string) ([]archive.Choice, error) {
-	return []archive.Choice{}, nil
+	return h.mockedChoices, nil
 }

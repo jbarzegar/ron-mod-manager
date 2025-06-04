@@ -31,7 +31,9 @@ type handler interface {
 // a Handler struct takes in a number of dependencies
 // used for data persistence and working with IO
 type Handler struct {
-	db     *ent.Client
+	// instance of a ent db client
+	db *ent.Client
+	// instance of the application config
 	config *appconfig.AppConfig
 	// Defines the logic handling IO
 	// IO can mean different things in Different contexts
