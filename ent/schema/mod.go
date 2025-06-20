@@ -16,7 +16,7 @@ type Mod struct {
 // A mod is an entry of a specific mod release.
 // Every mod has a list of versions.
 // A mod can only have one active version at a time.
-// Of the mod's state is "inactive" no version should be active
+// the mod's state is "inactive" no version should be active
 func (Mod) Fields() []ent.Field {
 	return []ent.Field{
 		// Display name of the overall mod.
