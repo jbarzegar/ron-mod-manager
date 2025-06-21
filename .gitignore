@@ -3,3 +3,4 @@ ent/*
 !ent/generate.go
 test/
 *.sqlite
+__debug_bin*

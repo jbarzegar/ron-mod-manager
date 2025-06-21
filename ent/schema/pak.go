@@ -26,7 +26,6 @@ func (Pak) Fields() []ent.Field {
 func (Pak) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("modVersion", ModVersion.Type).
-			Ref("paks").
-			Unique(),
+			Unique().Ref("paks"),
 	}
 }

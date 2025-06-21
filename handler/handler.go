@@ -4,6 +4,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -16,7 +17,8 @@ import (
 
 type AddModResponse struct {
 	// *ent.Archive
-	Archive *ent.Archive `json:"archive"`
+	Archive    *ent.Archive    `json:"archive"`
+	ModVersion *ent.ModVersion `json:"modVersion"`
 	// a list of potential paks that can be added
 	Choices []archive.Choice `json:"choices"`
 }
@@ -52,12 +54,10 @@ func NewHandler(db *ent.Client, config *appconfig.AppConfig, ioHandler handlerio
 }
 
 func createModVersionBuilder(
-	ctx context.Context,
 	db *ent.Client,
 	name string,
 	version string,
 	archives ent.Archives,
-	paks ent.Paks,
 ) (*ent.ModVersionCreate, uuid.UUID, error) {
 	uuid, err := uuid.NewV6()
 	if err != nil {
@@ -72,32 +72,33 @@ func createModVersionBuilder(
 	return modVersionBuilder, uuid, nil
 }
 
+type modBuilderPayload struct {
+	Name    string
+	Version string
+	Origin  string
+}
+
 func createModBuilder(
-	ctx context.Context,
+	_ context.Context,
 	db *ent.Client,
-	name string,
-	version string,
-	origin string,
+	m modBuilderPayload,
 	modVersionUUID uuid.UUID,
 ) (*ent.ModCreate, error) {
 	// create a new mod the new mod should be inactive since no instance of
 	// this mod exists we can safely(?probablynotsafe) assign the current mod version to the
 	// above uuid
 	modBuilder := db.Mod.Create().
-		SetName(name).
+		SetName(m.Name).
 		SetState("inactive").
 		SetActiveVersion(modVersionUUID).
-		SetOrigin("unknown")
+		SetOrigin(m.Origin)
 
-	if _, err := modBuilder.Save(ctx); err != nil {
-		return nil, err
-	}
 	return modBuilder, nil
 }
 
 // createPakBuilders will map a slice of choices, create an ent pakBuilder for each choice
 // returning a bulk create builder
-func createPakBuilders(ctx context.Context, db *ent.Client, choices []archive.Choice) (*ent.PakCreateBulk, error) {
+func createPakBuilders(db *ent.Client, choices []archive.Choice) (*ent.PakCreateBulk, error) {
 	// create slice of pak builders
 	builders := []*ent.PakCreate{}
 	for _, c := range choices {
@@ -120,79 +121,100 @@ func createPakBuilders(ctx context.Context, db *ent.Client, choices []archive.Ch
 // AddMod adds a mod to the current mod manager registry
 func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, error) {
 	p := filepath.Join(h.config.ModDir, "archives", name)
-
 	ctx := context.TODO()
-	a, err := h.db.Archive.Create().
+	archive, err := h.db.Archive.Create().
 		SetName(name).
 		SetArchivePath(p).
 		// todo calc md5 sum
 		SetMd5Sum("").
 		Save(ctx)
 	if err != nil {
-		return nil, err
-	}
-
-	modExists, err := h.db.Mod.Query().Where(mod.NameEQ(name)).Exist(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	modVersionBuilder, uid, err := createModVersionBuilder(
-		context.TODO(),
-		h.db,
-		name,
-		"",
-		ent.Archives{a},
-		ent.Paks{},
-	)
-	if err != nil {
-		return nil, err
+		return nil, errors.Join(
+			errors.New("Error creating archive"),
+			err,
+		)
 	}
 
 	// handle IO portion of addmod after db operations have finished
 	choices, err := h.io.AddMod(archivePath, p)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(
+			errors.New("IO Error while adding mod"),
+			err,
+		)
 	}
 
 	// create and save paks to db
 	// there's no way of knowing what paks are avaliable until you look at them from the IO layer
-	paksBuilder, err := createPakBuilders(context.TODO(), h.db, choices)
+	paksBuilder, err := createPakBuilders(h.db, choices)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("error while building PAKs"), err)
 	}
 
 	// save the paks
 	paks, err := paksBuilder.Save(context.TODO())
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(errors.New("error saving paks"), err)
+	}
+
+	modVersionBuilder, uid, err := createModVersionBuilder(
+		h.db,
+		name,
+		"0.0.0",
+		ent.Archives{archive},
+	)
+	if err != nil {
+		return nil, errors.Join(
+			errors.New("error while creating modVersionBuilder"),
+			err,
+		)
 	}
 
 	//append paks to the mod version builder
 	modVersionBuilder.AddPaks(paks...)
 
+	// save the builder
+	modVersion, err := modVersionBuilder.Save(context.TODO())
+	if err != nil {
+		return nil, errors.Join(errors.New("error saving mod version"), err)
+	}
+
+	modExists, err := h.db.Mod.Query().Where(mod.NameEQ(name)).Exist(ctx)
+	if err != nil {
+		return nil, errors.Join(
+			errors.New("error getting mod"),
+			err,
+		)
+	}
 	// we need to create a new mod entry if it doesn't exist already
 	if !modExists {
-		newModBuilder, err := createModBuilder(ctx, h.db, name, "", "unknown", uid)
+		newModBuilder, err := createModBuilder(
+			ctx,
+			h.db,
+			modBuilderPayload{
+				Name:    name,
+				Version: "0.0.0",
+				Origin:  "unknown",
+			},
+			uid,
+		)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(errors.New("error creating modBuilder"), err)
 		}
+
+		newModBuilder.AddVersionIDs(modVersion.ID)
 
 		// save the new mod
 		_, err = newModBuilder.Save(ctx)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(errors.New("error saving mod"), err)
 		}
 	}
 
-	// save the builder
-	if _, err := modVersionBuilder.Save(context.TODO()); err != nil {
-		return nil, err
-	}
-
 	return &AddModResponse{
-		Archive: a,
-		Choices: choices,
+		Archive:    archive,
+		ModVersion: modVersion,
+		Choices:    choices,
 	}, nil
 }
 

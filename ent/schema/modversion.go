@@ -17,7 +17,7 @@ func (ModVersion) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("uuid", uuid.UUID{}).Unique(),
 		field.String("name"),
-		field.String("version").Unique(),
+		field.String("version"),
 	}
 }
 
