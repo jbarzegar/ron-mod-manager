@@ -11,8 +11,12 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/handler"
 )
 
+type ServerConf struct {
+	Addr string
+}
+
 // CreateHTTPServer starts the HTTP server supplying an instance of the application db client and core logic handler
-func CreateHTTPServer(db *ent.Client, h handler.Handler) (*fiber.App, error) {
+func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error {
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -41,9 +45,9 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler) (*fiber.App, error) {
 		return c.JSON(archive)
 	})
 
-	if err := app.Listen(":5000"); err != nil {
-		return nil, err
+	if err := app.Listen(conf.Addr); err != nil {
+		return err
 	}
 
-	return app, nil
+	return nil
 }

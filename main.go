@@ -49,7 +49,11 @@ func main() {
 	h := handler.NewHandler(db, appConf, iohandler)
 
 	// start server
-	if _, err := server.CreateHTTPServer(db, h); err != nil {
+	if err := server.CreateHTTPServer(
+		db,
+		h,
+		server.ServerConf{Addr: ":5000"},
+	); err != nil {
 		log.Fatal(err)
 	} else {
 		slog.Info("Server started")
