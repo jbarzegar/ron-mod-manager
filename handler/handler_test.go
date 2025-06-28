@@ -28,18 +28,18 @@ var noChoices = []a.Choice{}
 
 // var client = ent.
 
-func initTestHandler(t *testing.T, choices []a.Choice) (handler.Handler, *ent.Client) {
+func initTestHandler(t *testing.T, choices []a.Choice) (*handler.Handler, *handlerio.MockIOHandler, *ent.Client) {
 	client := testutils.SetupTestDB(t)
 	ioHandler := handlerio.NewMockIOHandler(choices)
 	h := handler.NewHandler(client, &testCfg, &ioHandler)
 
-	return h, client
+	return &h, &ioHandler, client
 }
 
 // TestShouldAddMod tests that a mod can be added via an archive
 // This test specifically should return a mod with no choices
 func TestShouldAddMod(t *testing.T) {
-	h, client := initTestHandler(t, noChoices)
+	h, _, client := initTestHandler(t, noChoices)
 
 	expectedName := "test-mod"
 	r, err := h.AddMod("/path/to/archive.zip", expectedName)
@@ -82,7 +82,7 @@ func TestShouldAddModWithChoices(t *testing.T) {
 	}
 
 	expectedName := "test-mod"
-	h, _ := initTestHandler(t, choices)
+	h, _, _ := initTestHandler(t, choices)
 
 	r, err := h.AddMod("/path/to/archive.zip", expectedName)
 	if err != nil {
@@ -125,7 +125,7 @@ func TestShouldAddMultipleMods(t *testing.T) {
 
 	// add each mod
 	for i, m := range testMods {
-		h, _ := initTestHandler(t, m.Choices)
+		h, _, _ := initTestHandler(t, m.Choices)
 		_, err := h.AddMod(m.Path, m.Name)
 		if err != nil {
 			fmt.Printf("failed to create mod on index: %v\n", i)
@@ -134,7 +134,7 @@ func TestShouldAddMultipleMods(t *testing.T) {
 	}
 
 	// handler is a noop since we just want the db
-	_, db := initTestHandler(t, noChoices)
+	_, _, db := initTestHandler(t, noChoices)
 	for _, testMod := range testMods {
 		// get the newly created mod using the names provided
 		modQueryResult, err := db.
@@ -147,7 +147,7 @@ func TestShouldAddMultipleMods(t *testing.T) {
 		}
 
 		if modQueryResult == nil {
-			t.Fatal(errors.New(fmt.Sprintf("mod %v not found", testMod.Name)))
+			t.Fatal(fmt.Errorf("mod %v not found", testMod.Name))
 		}
 
 		// get all the mod Versions (though we only expect a single version for this test)
@@ -174,14 +174,24 @@ func TestShouldAddMultipleMods(t *testing.T) {
 }
 
 // TestShouldInstallMod tests that a mod can be installed once an archive is added
-// func TestShouldInstallMod(t *testing.T) {
-// 	h, _ := initTestHandler(t, noChoices)
+func TestShouldInstallModWithNoChoices(t *testing.T) {
+	// add a mod w no choices (for testing purposes)
+	//
+	// determine it worked
+	//
+	// do an addMod
+	// test if db state has used updated modversion id we expect
+	// test if mock io has installed the mod
 
-// 	h.InstallMod()
-
-// }
+}
 
 // TestShouldInstallModWithChoices tests that a mod can be installed with choices
-// func TestShouldInstallModWithChoices(t *testing.T) {
-
-// }
+func TestShouldInstallModWithChoices(t *testing.T) {
+	// add a mod w no choices (for testing purposes)
+	//
+	// determine it worked
+	//
+	// do an addMod
+	// test if db state has used updated modversion id we expect
+	// test if mock io has installed the mod
+}

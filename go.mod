@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mholt/archiver/v3 v3.5.1
+	golang.org/x/net v0.33.0
 )
 
 require (
@@ -47,7 +48,6 @@ require (
 	github.com/zclconf/go-cty-yaml v1.1.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )
