@@ -45,8 +45,8 @@ func main() {
 	}
 
 	// setup handlers for transport layer
-	iohandler := handlerio.NewFileSystemHandler()
-	h := handler.NewHandler(db, appConf, iohandler)
+	iohandler := &handlerio.FileSystemHandler{}
+	h := handler.Handler{Db: db, Config: appConf, Io: iohandler}
 
 	// start server
 	if err := server.CreateHTTPServer(

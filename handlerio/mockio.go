@@ -1,18 +1,23 @@
 package handlerio
 
 import (
+	"fmt"
 	"slices"
 
+	"github.com/google/uuid"
 	"github.com/jbarzegar/ron-mod-manager/archive"
 )
 
-// MockIOHandler is a stubbed version of an IOHandler
-type MockIOHandler struct {
-	mockedChoices []archive.Choice
+type MockMod struct {
+	Installed bool
+	Version   string
+	UUID      uuid.UUID
 }
 
-func NewMockIOHandler(archiveChoices []archive.Choice) MockIOHandler {
-	return MockIOHandler{mockedChoices: archiveChoices}
+// MockIOHandler is a stubbed version of an IOHandler
+type MockIOHandler struct {
+	MockedChoices []archive.Choice
+	Installed     map[string]MockMod
 }
 
 // AddMod will return the mocked choices assigned on struct init
@@ -22,5 +27,16 @@ func (h *MockIOHandler) AddMod(archivePath string, outputPath string) ([]archive
 		Name:     "test-choice",
 		FullPath: "/path/to/choice",
 	}}
-	return slices.Concat(defaultChoices, h.mockedChoices), nil
+	fmt.Println(slices.Concat(defaultChoices, h.MockedChoices))
+	return slices.Concat(defaultChoices, h.MockedChoices), nil
+}
+
+func (h *MockIOHandler) InstallMod(payload Installable) error {
+	h.Installed[payload.Mod.Name] = MockMod{
+		Installed: true,
+		Version:   "0.0.0",
+		UUID:      *payload.Mod.ActiveVersion,
+	}
+
+	return nil
 }

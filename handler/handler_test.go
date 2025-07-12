@@ -13,6 +13,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/ent/archive"
 	"github.com/jbarzegar/ron-mod-manager/ent/mod"
+	"github.com/jbarzegar/ron-mod-manager/ent/modversion"
 	"github.com/jbarzegar/ron-mod-manager/handler"
 	"github.com/jbarzegar/ron-mod-manager/handlerio"
 	"github.com/jbarzegar/ron-mod-manager/testutils"
@@ -30,10 +31,14 @@ var noChoices = []a.Choice{}
 
 func initTestHandler(t *testing.T, choices []a.Choice) (*handler.Handler, *handlerio.MockIOHandler, *ent.Client) {
 	client := testutils.SetupTestDB(t)
-	ioHandler := handlerio.NewMockIOHandler(choices)
-	h := handler.NewHandler(client, &testCfg, &ioHandler)
+	// ioHandler := handlerio.NewMockIOHandler(choices)
+	ioHandler := &handlerio.MockIOHandler{
+		MockedChoices: choices,
+		Installed:     map[string]handlerio.MockMod{},
+	}
+	h := handler.Handler{Db: client, Config: &testCfg, Io: ioHandler}
 
-	return &h, &ioHandler, client
+	return &h, ioHandler, client
 }
 
 // TestShouldAddMod tests that a mod can be added via an archive
@@ -89,13 +94,14 @@ func TestShouldAddModWithChoices(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(r.Choices) != len(choices) {
+	if len(r.Choices) != len(choices)+1 {
+		fmt.Println(len(r.Choices), len(choices))
 		fmt.Println("Did not get amount of expected choices")
 		t.Fail()
 	}
 }
 
-type multiMod struct {
+type modToInstall struct {
 	Name           string
 	ExpectedPakLen int
 	Path           string
@@ -105,7 +111,7 @@ type multiMod struct {
 // TestShouldAddMultipleMods tests that multiple mods can be added to the db
 // the test will also verify that paks will be queried from the correct mods
 func TestShouldAddMultipleMods(t *testing.T) {
-	testMods := []multiMod{
+	testMods := []modToInstall{
 		{
 			Name:           "first-mod",
 			ExpectedPakLen: 1,
@@ -176,22 +182,50 @@ func TestShouldAddMultipleMods(t *testing.T) {
 // TestShouldInstallMod tests that a mod can be installed once an archive is added
 func TestShouldInstallModWithNoChoices(t *testing.T) {
 	// add a mod w no choices (for testing purposes)
-	//
-	// determine it worked
-	//
-	// do an addMod
-	// test if db state has used updated modversion id we expect
-	// test if mock io has installed the mod
+	testMod := modToInstall{
+		Name:           "first-mod",
+		ExpectedPakLen: 1,
+		Path:           "/path/to/archive.zip",
+	}
+	h, hio, db := initTestHandler(t, noChoices)
 
-}
-
-// TestShouldInstallModWithChoices tests that a mod can be installed with choices
-func TestShouldInstallModWithChoices(t *testing.T) {
-	// add a mod w no choices (for testing purposes)
-	//
-	// determine it worked
-	//
 	// do an addMod
+	addModResp, err := h.AddMod(testMod.Path, testMod.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// determine it worked
 	// test if db state has used updated modversion id we expect
+	mv, err := db.ModVersion.Query().Where(modversion.UUIDEQ(addModResp.ModVersion.UUID)).Only(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if mv.UUID != addModResp.ModVersion.UUID {
+		t.Fatal("UUIDS do not match")
+	}
+
+	mod, err := mv.QueryMod().Only(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+	paks, err := mod.QueryVersions().QueryPaks().All(context.TODO())
+	if err != nil {
+		t.Fatal(err)
+	}
+	// prep deps to install mod
+	installable := handlerio.Installable{
+		Mod:         mod,
+		ArchivePath: "idk",
+		Assets:      handlerio.InstallableAssets{Pak: paks},
+		OutPath:     "idk",
+	}
 	// test if mock io has installed the mod
+	if err := hio.InstallMod(installable); err != nil {
+		t.Fatal(err)
+	}
+	if hio.Installed[installable.Mod.Name].Installed != true {
+		t.Fatal("Mod was not installed")
+	}
 }

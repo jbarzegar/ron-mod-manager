@@ -5,6 +5,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -12,6 +13,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/archive"
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/ent/mod"
+	"github.com/jbarzegar/ron-mod-manager/ent/pak"
 	"github.com/jbarzegar/ron-mod-manager/handlerio"
 )
 
@@ -28,28 +30,29 @@ type handler interface {
 	GetMods()
 	// add an archive as a mod
 	AddMod(archivePath string) (AddModResponse, error)
-	// install a mod
-	InstallMod()
+	// install a mod using an instance of a mod version
+	InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error
 }
 
 // defines a Handler struct
 // a Handler struct takes in a number of dependencies
 // used for data persistence and working with IO
 type Handler struct {
-	// instance of a ent db client
-	db *ent.Client
-	// instance of the application config
-	config *appconfig.AppConfig
+	// instance of a ent Db client
+	Db *ent.Client
+	// instance of the application Config
+	Config *appconfig.AppConfig
 	// Defines the logic handling IO
 	// IO can mean different things in Different contexts
 	// Generally in regular usecases IO refers to FileSystemHandler
 	// abstracting this enables this portion of code to be more easily testable
-	io handlerio.IOHandler
+	Io handlerio.IOHandler
 }
 
 // implement handler with dep inversion
-func NewHandler(db *ent.Client, config *appconfig.AppConfig, ioHandler handlerio.IOHandler) Handler {
-	h := Handler{db: db, config: config, io: ioHandler}
+func NewHandler(db *ent.Client, config *appconfig.AppConfig, ioHandler *handlerio.IOHandler) Handler {
+	// io := *ioHandler
+	h := Handler{Db: db, Config: config, Io: *ioHandler}
 	return h
 }
 
@@ -120,9 +123,9 @@ func createPakBuilders(db *ent.Client, choices []archive.Choice) (*ent.PakCreate
 
 // AddMod adds a mod to the current mod manager registry
 func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, error) {
-	p := filepath.Join(h.config.ModDir, "archives", name)
+	p := filepath.Join(h.Config.ModDir, "archives", name)
 	ctx := context.TODO()
-	archive, err := h.db.Archive.Create().
+	archive, err := h.Db.Archive.Create().
 		SetName(name).
 		SetArchivePath(p).
 		// todo calc md5 sum
@@ -136,7 +139,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	}
 
 	// handle IO portion of addmod after db operations have finished
-	choices, err := h.io.AddMod(archivePath, p)
+	choices, err := h.Io.AddMod(archivePath, p)
 	if err != nil {
 		return nil, errors.Join(
 			errors.New("IO Error while adding mod"),
@@ -146,7 +149,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 
 	// create and save paks to db
 	// there's no way of knowing what paks are avaliable until you look at them from the IO layer
-	paksBuilder, err := createPakBuilders(h.db, choices)
+	paksBuilder, err := createPakBuilders(h.Db, choices)
 	if err != nil {
 		return nil, errors.Join(errors.New("error while building PAKs"), err)
 	}
@@ -158,7 +161,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	}
 
 	modVersionBuilder, uid, err := createModVersionBuilder(
-		h.db,
+		h.Db,
 		name,
 		"0.0.0",
 		ent.Archives{archive},
@@ -179,7 +182,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 		return nil, errors.Join(errors.New("error saving mod version"), err)
 	}
 
-	modExists, err := h.db.Mod.Query().Where(mod.NameEQ(name)).Exist(ctx)
+	modExists, err := h.Db.Mod.Query().Where(mod.NameEQ(name)).Exist(ctx)
 	if err != nil {
 		return nil, errors.Join(
 			errors.New("error getting mod"),
@@ -190,7 +193,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	if !modExists {
 		newModBuilder, err := createModBuilder(
 			ctx,
-			h.db,
+			h.Db,
 			modBuilderPayload{
 				Name:    name,
 				Version: "0.0.0",
@@ -218,9 +221,64 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	}, nil
 }
 
-func (h *Handler) InstallMod() error {
-	// h.db.Mod.
-	//
-	// re
+// InstallMod activates a given modVersion to a given mod including paks that
+// must be activated as well
+func (h *Handler) InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error {
+	// get mod we want to update the modversion on
+	mod, err := h.Db.Mod.Query().Where(mod.ID(modID)).Only(context.TODO())
+	if err != nil {
+		return errors.Join(
+			fmt.Errorf("failed to get mod with id %v", modID),
+			err,
+		)
+	}
+
+	// set the paks that must be activated
+	for _, pUUID := range paksToActivate {
+		Pak := h.Db.Pak
+		pakEQ := pak.UUIDEQ(pUUID)
+		exists, err := Pak.Query().Where(pakEQ).Exist(context.TODO())
+		if err != nil {
+			return errors.Join(
+				errors.New("failed to update pak"),
+				err,
+			)
+		}
+		if exists {
+			if _, err := Pak.
+				Update().
+				Where(pakEQ).
+				SetActive(true).
+				Save(context.TODO()); err != nil {
+				return errors.Join(
+					errors.New("error activating pak"),
+					err,
+				)
+			}
+		}
+	}
+
+	modUpdate := mod.Update()
+
+	// set the active version of the modVersion to the mod
+	modUpdate.SetActiveVersion(modVersion.UUID)
+
+	// set the state to active if it's not already set
+	if mod.State == "inactive" {
+		modUpdate.SetState("active")
+	}
+
+	// finally save the mod
+	_, err = modUpdate.Save(context.TODO())
+	if err != nil {
+		return errors.Join(
+			errors.New("failed updating mod"),
+			err,
+		)
+	}
+
+	// TODO do the io work
+	// h.io.InstallMod()
+
 	return nil
 }

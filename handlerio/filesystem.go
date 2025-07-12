@@ -1,6 +1,7 @@
 package handlerio
 
 import (
+	"errors"
 	"io/fs"
 	"path/filepath"
 
@@ -30,11 +31,6 @@ func collectChoices(p string) []archive.Choice {
 	return choices
 }
 
-func NewFileSystemHandler() *FileSystemHandler {
-	h := FileSystemHandler{}
-	return &h
-}
-
 func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]archive.Choice, error) {
 	if err := archive.Extract(archivePath, outputPath, true); err != nil {
 		return nil, err
@@ -44,4 +40,9 @@ func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]arc
 	choices := collectChoices(outputPath)
 
 	return choices, nil
+}
+
+func (h *FileSystemHandler) InstallMod(archivePath string, outPath string) error {
+
+	return errors.New("Not implemented")
 }
