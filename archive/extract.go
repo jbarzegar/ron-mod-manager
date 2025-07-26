@@ -75,7 +75,7 @@ func Extract(src string, dest string, overwrite bool) error {
 	_, err := os.Stat(dest)
 
 	if !os.IsNotExist(err) {
-		slog.Warn("Path exists", "<prompt for overwrite>, skipping")
+		slog.Warn("Path exists <prompt for overwrite>, skipping")
 	} else {
 		m, err := mimetype.DetectFile(src)
 		if err != nil {

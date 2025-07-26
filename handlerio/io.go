@@ -6,7 +6,7 @@ import (
 )
 
 type InstallableAssets struct {
-	Pak []*ent.Pak
+	Paks []*ent.Pak
 }
 type Installable struct {
 	Mod         *ent.Mod

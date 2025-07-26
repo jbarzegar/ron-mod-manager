@@ -42,7 +42,9 @@ func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]arc
 	return choices, nil
 }
 
-func (h *FileSystemHandler) InstallMod(archivePath string, outPath string) error {
+func (h *FileSystemHandler) InstallMod(payload Installable) error {
+	// fmt.Println(payload)
 
+	// install the paks
 	return errors.New("Not implemented")
 }
