@@ -14,6 +14,8 @@ import (
 type AppConfig struct {
 	GameDir string `json:"gameDir"`
 	ModDir  string `json:"modDir"`
+	// Foldername where staged mods go prior to moving them to the game dir
+	StagingModFolderName string `json:"stagedModFolderName"`
 }
 
 var (
@@ -42,7 +44,11 @@ func writeConfigFile(confFile string, config AppConfig) error {
 }
 
 func ensureConfig(confPath string) (AppConfig, error) {
-	defaultConfig := AppConfig{GameDir: "unknown", ModDir: "unknown"}
+	defaultConfig := AppConfig{
+		GameDir:              "unknown",
+		ModDir:               "unknown",
+		StagingModFolderName: "__staged_mods__",
+	}
 
 	if _, err := os.Stat(confPath); errors.Is(err, os.ErrNotExist) {
 		slog.Debug("write config")
@@ -55,13 +61,17 @@ func ensureConfig(confPath string) (AppConfig, error) {
 			return AppConfig{}, err
 		}
 
+		if cfg.StagingModFolderName == "" {
+			cfg.StagingModFolderName = defaultConfig.StagingModFolderName
+		}
+
 		// validate ron dir
-		if err := validateRonDir(cfg.GameDir); err != nil {
+		if err := validateRonDir(cfg); err != nil {
 			return AppConfig{}, err
 		}
 
 		// validate mod dir
-		if err := validateModDir(cfg.ModDir); err != nil {
+		if err := validateModDir(cfg); err != nil {
 			return AppConfig{}, err
 		}
 

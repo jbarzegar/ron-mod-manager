@@ -19,4 +19,6 @@ type Installable struct {
 type IOHandler interface {
 	AddMod(archivePath string, outputPath string) ([]archive.Choice, error)
 	InstallMod(payload Installable) error
+	UninstallMod(pakPaths []*ent.Pak) error
+	DeleteMod(modPath string) error
 }

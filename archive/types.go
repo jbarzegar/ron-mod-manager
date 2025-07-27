@@ -1,7 +1,9 @@
 package archive
 
+import "github.com/google/uuid"
+
 type Choice struct {
-	Name string
-	// Path     []string
-	FullPath string
+	UUID     uuid.UUID `json:"uuid"`
+	Name     string    `json:"name"`
+	FullPath string    `json:"fullPath"`
 }

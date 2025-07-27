@@ -7,7 +7,9 @@ import (
 	"path"
 )
 
-func validateRonDir(dir string) error {
+func validateRonDir(cfg AppConfig) error {
+	dir := cfg.GameDir
+
 	if dir == "unknown" {
 		return errors.New("dir not set")
 	}
@@ -28,13 +30,17 @@ func validateRonDir(dir string) error {
 	return nil
 }
 
-func validateModDir(dir string) error {
+func validateModDir(cfg AppConfig) error {
+	dir := cfg.ModDir
+	modInstallDir := cfg.StagingModFolderName
+
 	// Archives stores the .zips used for installs
 	archivesPath := path.Join(dir, "archives")
 	// Stored "installed mods"
 	modsPath := path.Join(dir, "mods")
-
-	dirsToEnsure := []string{archivesPath, modsPath}
+	// stores the staged mod files
+	modInstallDirPath := path.Join(dir, modInstallDir)
+	dirsToEnsure := []string{archivesPath, modsPath, modInstallDirPath}
 	for _, d := range dirsToEnsure {
 		if _, err := os.Stat(d); os.IsNotExist(err) {
 			fmt.Println(d, "doesn't exist, creating")

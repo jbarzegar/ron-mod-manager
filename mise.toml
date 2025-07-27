@@ -19,5 +19,8 @@ run = "go generate ./ent"
 description = "Run code"
 run = "go run main.go"
 
-[tasks.migrate]
+[tasks."migrate:create"]
+run = 'atlas migrate diff {{arg(name="migration_name")}} --dir "file://ent/migrate/migrations" --to "ent://ent/schema" --dev-url "sqlite://test/test.sqlite?_fk=1"'
+
+[tasks."migrate:apply"]
 run = 'atlas migrate apply --dir "file://ent/migrate/migrations" --url "sqlite://test/test.sqlite?_fk=1"'

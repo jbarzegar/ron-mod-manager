@@ -2,13 +2,20 @@ package handlerio
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 
+	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
+	"github.com/jbarzegar/ron-mod-manager/ent"
 )
 
-type FileSystemHandler struct{}
+type FileSystemHandler struct {
+	Config *appconfig.AppConfig
+}
 
 // collectChoices gets all possible choices from an archive
 func collectChoices(p string) []archive.Choice {
@@ -43,8 +50,52 @@ func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]arc
 }
 
 func (h *FileSystemHandler) InstallMod(payload Installable) error {
-	// fmt.Println(payload)
+	// install mods to the staging folder
+	for _, x := range payload.Assets.Paks {
+		pakPath := filepath.Join(h.Config.ModDir, h.Config.StagingModFolderName, x.Name)
+		f, err := os.Open(x.Path)
+		if err != nil {
+			return errors.Join(
+				fmt.Errorf("failed to open file %v", x.Path),
+				err,
+			)
+		}
+		defer f.Close()
+		// copy the paks around
+		w, err := os.Create(pakPath)
+		if err != nil {
+			return errors.Join(
+				fmt.Errorf("failed to create staged file %v", pakPath),
+				err,
+			)
+		}
+		// install the paks
+		_, err = io.Copy(w, f)
+		if err != nil {
+			return errors.Join(
+				fmt.Errorf("failed to copy staged file %v", pakPath),
+				err,
+			)
+		}
+	}
+	return nil
+}
 
-	// install the paks
-	return errors.New("Not implemented")
+func (h *FileSystemHandler) UninstallMod(pakPaths []*ent.Pak) error {
+	for _, x := range pakPaths {
+		pakPath := filepath.Join(h.Config.ModDir, h.Config.StagingModFolderName, x.Name)
+		if err := os.Remove(pakPath); err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			} else {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (h *FileSystemHandler) DeleteMod(modPath string) error {
+	return os.RemoveAll(modPath)
 }

@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/google/uuid"
+	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
 )
 
@@ -16,6 +17,7 @@ type MockMod struct {
 
 // MockIOHandler is a stubbed version of an IOHandler
 type MockIOHandler struct {
+	Config        *appconfig.AppConfig
 	MockedChoices []archive.Choice
 	Installed     map[string]MockMod
 }
