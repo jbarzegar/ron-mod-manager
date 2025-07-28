@@ -86,7 +86,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	ctx := context.TODO()
 	archive, err := h.Db.Archive.Create().
 		SetName(name).
-		SetArchivePath(p).
+		SetArchivePath(archivePath).
 		// todo calc md5 sum
 		SetMd5Sum("").
 		Save(ctx)

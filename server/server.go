@@ -5,6 +5,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -35,6 +36,24 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 		}
 
 		return c.JSON(staged)
+	})
+
+	app.Get("/archives", func(c *fiber.Ctx) error {
+		var req *actions.GetArchiveRequest
+
+		err := json.Unmarshal(c.Body(), &req)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(req.Untracked)
+		archives, err := h.GetArchives(req)
+
+		if err != nil {
+			return err
+		}
+
+		return c.JSON(archives)
 	})
 
 	app.Get("/staged", func(c *fiber.Ctx) error {

@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
@@ -98,4 +99,55 @@ func (h *FileSystemHandler) UninstallMod(pakPaths []*ent.Pak) error {
 
 func (h *FileSystemHandler) DeleteMod(modPath string) error {
 	return os.RemoveAll(modPath)
+}
+
+func (h *FileSystemHandler) PathExists(path string) bool {
+	_, err := os.Stat(path)
+	exists := !os.IsNotExist(err)
+	return exists
+}
+
+type unTracked struct {
+	Name string
+	Path string
+}
+
+func (h *FileSystemHandler) GetUntracked(registeredPaths []string) ([]*unTracked, error) {
+	archivePath := filepath.Join(h.Config.ModDir, "archives")
+
+	dirs, err := os.ReadDir(archivePath)
+	if err != nil {
+		return nil, err
+	}
+
+	unTrackedPaths := []*unTracked{}
+	for _, d := range dirs {
+		if d.IsDir() {
+			// I'm not supporting nested dirs yet.
+			// Because I'm lazy and don't want to deal with that edgecase yet
+			// TODO: DEAL WITH THIS EDGECASE
+			continue
+		}
+
+		aPath := filepath.Join(archivePath, d.Name())
+
+		isRegistered := slices.ContainsFunc(
+			registeredPaths,
+			func(a string) bool {
+				return a == aPath
+			})
+
+		// skip weird files (eg symlinks)
+		// TODO: also filter out non archive files
+		// logic for that exists
+		if isRegistered || !d.Type().IsRegular() {
+			continue
+		}
+
+		unTrackedPaths = append(unTrackedPaths, &unTracked{
+			Name: d.Name(),
+			Path: aPath,
+		})
+	}
+	return unTrackedPaths, nil
 }

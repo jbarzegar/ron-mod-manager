@@ -6,8 +6,14 @@ import (
 )
 
 type AddRequest struct {
+	// If ID is supplied in a request
+	// It's assumed that you're "reinstalling"
+	// a mod
+	ID int `json:"id"`
+	// ID & ArchivePath cannot exist within the same request body
 	ArchivePath string `json:"archivePath"`
-	Name        string `json:"name"`
+	// Not used if ID is provided
+	Name string `json:"name"`
 }
 
 type InstallRequest struct {
@@ -23,6 +29,36 @@ type StagedMod struct {
 	ActiveVersion     string     `json:"activeVersion"`
 	ActiveVersionUUID *uuid.UUID `json:"activeVersionUUID"`
 	Paks              []*ent.Pak `json:"paks"`
+}
+
+type ValidationMessage struct {
+	// "Warning" | "Fatal" | "Info"
+	Kind    string `json:"kind"`
+	Message string `json:"message"`
+}
+
+type GetArchivesEntry struct {
+	ID   int    `json:"id",omitempty`
+	Name string `json:"name"`
+	Path string `json:"path"`
+	// Installed as a mod
+	Installed bool `json:"installed"`
+	// Installable differs in install where it satisfies the condition where the
+	// mod can either be installed or re-installed
+	Installable        bool                `json:"installable"`
+	PathExists         bool                `json:"pathExists"`
+	ValidationMessages []ValidationMessage `json:"validationMessages"`
+}
+
+type GetArchiveRequest struct {
+	// Scan io for outstanding archives not currently registered by mod manager
+	// Default: False
+	Untracked bool `json:"untracked"`
+}
+
+type GetArchivesResponse struct {
+	UntrackedArchives []GetArchivesEntry `json:"untracked"`
+	Archives          []GetArchivesEntry `json:"archives"`
 }
 
 type StagedResponse struct {

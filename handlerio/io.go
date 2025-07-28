@@ -21,4 +21,6 @@ type IOHandler interface {
 	InstallMod(payload Installable) error
 	UninstallMod(pakPaths []*ent.Pak) error
 	DeleteMod(modPath string) error
+	PathExists(path string) bool
+	GetUntracked(registered []string) ([]*unTracked, error)
 }

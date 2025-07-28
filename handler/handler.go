@@ -33,6 +33,7 @@ type handler interface {
 	GetStagedMods() (actions.StagedResponse, error)
 	// add an archive as a mod
 	AddMod(archivePath string) (AddModResponse, error)
+	AddModByID(modId int) (AddModResponse, error)
 	// install a mod using an instance of a mod version
 	InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error
 	// uninstall a mod from the staging area
@@ -83,6 +84,79 @@ func (h *Handler) GetAllMods() (*actions.AllModsResponse, error) {
 		}
 
 		resp.Mods = append(resp.Mods, mappedMod)
+	}
+
+	return resp, nil
+}
+
+func (h *Handler) GetArchives(req *actions.GetArchiveRequest) (*actions.GetArchivesResponse, error) {
+	resp := &actions.GetArchivesResponse{}
+	archives, err := h.Db.Archive.Query().All(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	registeredPaths := []string{}
+	for _, archive := range archives {
+		a := actions.GetArchivesEntry{
+			ID:                 archive.ID,
+			Name:               archive.Name,
+			Path:               archive.ArchivePath,
+			Installed:          archive.Installed,
+			PathExists:         false,
+			ValidationMessages: []actions.ValidationMessage{},
+		}
+
+		// Path exists
+		a.PathExists = h.Io.PathExists(a.Path)
+
+		// TODO: create validation messages
+		// -- mod installed but path doesn't exist
+		if a.Installed && !a.PathExists {
+			a.ValidationMessages = append(
+				a.ValidationMessages,
+				actions.ValidationMessage{
+					Kind:    "warning",
+					Message: "Archive installed, but path does not exist in path anymore",
+				},
+			)
+		}
+		// -- neither installed nor has path that exists
+		if !a.Installed && !a.PathExists {
+			a.ValidationMessages = append(a.ValidationMessages,
+				actions.ValidationMessage{
+					Kind:    "info",
+					Message: "Archive neither installed nor the archive path found. ",
+				},
+			)
+		}
+
+		a.Installable = a.PathExists
+
+		// --
+		registeredPaths = append(registeredPaths, a.Path)
+		resp.Archives = append(resp.Archives, a)
+	}
+
+	if req.Untracked {
+		dirs, err := h.Io.GetUntracked(registeredPaths)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, d := range dirs {
+			resp.UntrackedArchives = append(resp.UntrackedArchives, actions.GetArchivesEntry{
+				ID:   -1,
+				Name: d.Name,
+				Path: d.Path,
+				// we can assume this exists. Since this is read directly from the file system
+				// the os itself assumes we can install it
+				Installable: true,
+				Installed:   false,
+				PathExists:  true,
+			})
+
+		}
 	}
 
 	return resp, nil
