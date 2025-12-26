@@ -1,0 +1,57 @@
+syntax = "proto3";
+package service.v1;
+
+import "service/v1/mod.proto";
+
+message AddArchiveRequest {
+  string archive_path = 1;
+  string name = 2;
+}
+
+message AddArchiveResponse {
+  string id = 1;
+  Mod mod = 2;
+  Archive archive = 3;
+}
+
+message GetAllModsRequest {}
+
+message GetAllModsResponse {
+  repeated Mod data = 1;
+  // repeated string = 1;
+  // repeated Mod mods = 1;
+}
+
+message GetStagedModsRequest {}
+message GetStagedModsResponse {
+  repeated StagedMod data = 1;
+}
+
+message InstallModRequest {
+  int32 mod_id = 1;
+  string mod_version_id = 2;
+  repeated string choices_to_activate = 3;
+}
+message InstallModResponse {}
+
+message UninstallModRequest {
+  int32 mod_id = 1;
+}
+message UninstallModResponse {}
+
+message DeleteModRequest {
+  int32 id = 1;
+  bool delete_archive = 2;
+  DeleteModType delete_states = 3;
+}
+message DeleteModResponse {}
+
+service ArchiveService {
+  rpc AddArchive(AddArchiveRequest) returns (AddArchiveResponse);
+
+  rpc GetAllMods(GetAllModsRequest) returns (GetAllModsResponse);
+  rpc GetStagedMods(GetStagedModsRequest) returns (GetStagedModsResponse);
+  rpc InstallMod(InstallModRequest) returns (InstallModResponse);
+  rpc UninstallMod(UninstallModRequest) returns (UninstallModResponse);
+  rpc DeleteMod(DeleteModRequest) returns (DeleteModResponse);
+}

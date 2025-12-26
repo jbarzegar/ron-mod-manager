@@ -6,4 +6,4 @@ test/
 __debug_bin*
 __bruno
 
-!./proto/**/*.proto
+!proto/**/*.proto
