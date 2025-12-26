@@ -6,4 +6,5 @@ test/
 __debug_bin*
 __bruno
 
+proto/**/*.go
 !proto/**/*.proto
