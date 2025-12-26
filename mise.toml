@@ -23,6 +23,7 @@ description = "Generate ent code"
 run = "go generate ./ent"
 
 [tasks.genproto]
+description = "Generate go code from protobuf"
 run = "buf generate"
 
 [tasks.generate]
