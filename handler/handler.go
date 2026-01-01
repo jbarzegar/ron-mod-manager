@@ -32,7 +32,7 @@ type handler interface {
 	// staged mods are ones being loaded into the game at this moment
 	GetStagedMods() (actions.StagedResponse, error)
 	// add an archive as a mod
-	AddMod(archivePath string) (AddModResponse, error)
+	AddArchive(archivePath string) (AddModResponse, error)
 	AddModByID(modId int) (AddModResponse, error)
 	// install a mod using an instance of a mod version
 	InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error

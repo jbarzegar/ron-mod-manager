@@ -79,8 +79,8 @@ func createPakBuilders(db *ent.Client, choices []archive.Choice) (*ent.PakCreate
 	return db.Pak.CreateBulk(builders...), nil
 }
 
-// AddMod adds a mod to the current mod manager registry
-func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, error) {
+// AddArchive adds a mod to the current mod manager registry
+func (h *Handler) AddArchive(archivePath string, name string) (*AddModResponse, error) {
 	version := "0.0.0"
 	p := filepath.Join(h.Config.ModDir, "mods", name, version)
 	ctx := context.TODO()
@@ -102,7 +102,7 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	}
 
 	// handle IO portion of addmod after db operations have finished
-	choices, err := h.Io.AddMod(archivePath, p)
+	choices, err := h.Io.AddArchive(archivePath, p)
 	if err != nil {
 		return nil, errors.Join(
 			errors.New("IO Error while adding mod"),

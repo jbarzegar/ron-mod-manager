@@ -39,7 +39,7 @@ func collectChoices(p string) []archive.Choice {
 	return choices
 }
 
-func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]archive.Choice, error) {
+func (h *FileSystemHandler) AddArchive(archivePath string, outputPath string) ([]archive.Choice, error) {
 	if err := archive.Extract(archivePath, outputPath, true); err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
+	"github.com/jbarzegar/ron-mod-manager/ent"
 )
 
 type MockMod struct {
@@ -24,7 +25,7 @@ type MockIOHandler struct {
 
 // AddMod will return the mocked choices assigned on struct init
 // we assume that `NewMockIoHandler` is used once per test so can assume choices provided are for a specific "mod"
-func (h *MockIOHandler) AddMod(archivePath string, outputPath string) ([]archive.Choice, error) {
+func (h *MockIOHandler) AddArchive(archivePath string, outputPath string) ([]archive.Choice, error) {
 	defaultChoices := []archive.Choice{{
 		Name:     "test-choice",
 		FullPath: "/path/to/choice",
@@ -41,4 +42,21 @@ func (h *MockIOHandler) InstallMod(payload Installable) error {
 	}
 
 	return nil
+}
+
+func (h *MockIOHandler) UninstallMod(payload []*ent.Pak) error {
+	return nil
+}
+
+func (h *MockIOHandler) DeleteMod(modPath string) error {
+	return nil
+}
+
+func (h *MockIOHandler) PathExists(path string) bool {
+	return false
+}
+
+func (h *MockIOHandler) GetUntracked(registered []string) ([]*unTracked, error) {
+	t := []*unTracked{}
+	return t, nil
 }

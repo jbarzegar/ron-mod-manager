@@ -88,7 +88,7 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 				SendString("name must be provided")
 		}
 
-		archive, err := h.AddMod(body.ArchivePath, body.Name)
+		archive, err := h.AddArchive(body.ArchivePath, body.Name)
 		if err != nil {
 			slog.Error("Error adding mod")
 			slog.Error(err.Error())
