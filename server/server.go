@@ -72,7 +72,7 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 		// archivePath := c.Query("archivePath")
 		// name := c.Query("name")
 
-		var body *actions.AddRequest
+		var body *actions.AddArchiveRequest
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return err

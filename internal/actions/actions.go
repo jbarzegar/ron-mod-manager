@@ -5,7 +5,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/ent"
 )
 
-type AddRequest struct {
+type AddArchiveRequest struct {
 	// If ID is supplied in a request
 	// It's assumed that you're "reinstalling"
 	// a mod
