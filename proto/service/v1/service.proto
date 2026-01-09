@@ -8,10 +8,11 @@ message AddArchiveRequest {
   string name = 2;
 }
 
+// AddArchiveResponse returns the instance of the installed archive
+// and a list of potential choices
 message AddArchiveResponse {
-  string id = 1;
-  Mod mod = 2;
-  Archive archive = 3;
+  Archive archive = 1;
+  repeated Choice choices = 2;
 }
 
 message GetAllModsRequest {}
@@ -46,7 +47,7 @@ message DeleteModRequest {
 }
 message DeleteModResponse {}
 
-service ArchiveService {
+service Service {
   rpc AddArchive(AddArchiveRequest) returns (AddArchiveResponse);
 
   rpc GetAllMods(GetAllModsRequest) returns (GetAllModsResponse);
