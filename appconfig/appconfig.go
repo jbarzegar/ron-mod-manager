@@ -52,7 +52,10 @@ func ensureConfig(confPath string) (AppConfig, error) {
 
 	if _, err := os.Stat(confPath); errors.Is(err, os.ErrNotExist) {
 		slog.Debug("write config")
-		writeConfigFile(confPath, defaultConfig)
+		err := writeConfigFile(confPath, defaultConfig)
+		if err != nil {
+			return AppConfig{}, err
+		}
 
 		return defaultConfig, nil
 	} else {

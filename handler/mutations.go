@@ -93,10 +93,10 @@ func (h *Handler) AddMod(archivePath string, name string) (*AddModResponse, erro
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			slog.Warn("archive already exists. TODO: ATTEMPT TO INSTALL ANYWAY")
-			return nil, fmt.Errorf("Archive: %v already exists as an archive", name)
+			return nil, fmt.Errorf("archive: %v already exists as an archive", name)
 		}
 		return nil, errors.Join(
-			errors.New("Error creating archive"),
+			errors.New("error creating archive"),
 			err,
 		)
 	}
@@ -229,7 +229,7 @@ func (h *Handler) InstallMod(modID int, modVersionUUID uuid.UUID, paksToActivate
 			pak, err := Pak.Query().Where(pakEQ).Only(context.Background())
 			if err != nil {
 				return errors.Join(
-					fmt.Errorf("Error querying updated pak: %v", pUUID),
+					fmt.Errorf("error querying updated pak: %v", pUUID),
 					err,
 				)
 			}
