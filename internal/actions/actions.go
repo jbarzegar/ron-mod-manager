@@ -38,7 +38,7 @@ type ValidationMessage struct {
 }
 
 type GetArchivesEntry struct {
-	ID   int    `json:"id",omitempty`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 	Path string `json:"path"`
 	// Installed as a mod

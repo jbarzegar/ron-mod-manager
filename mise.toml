@@ -7,6 +7,9 @@ golangci-lint = "latest"
 "go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
 
 
+golangci-lint = "latest"
+"go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
+
 [env]
 CGO_ENABLED = "1"
 
@@ -41,3 +44,6 @@ run = 'atlas migrate diff {{arg(name="migration_name")}} --dir "file://ent/migra
 
 [tasks."migrate:apply"]
 run = 'atlas migrate apply --dir "file://ent/migrate/migrations" --url "sqlite://test/test.sqlite?_fk=1"'
+
+[tasks."lint"]
+run = "golangci-lint run"
