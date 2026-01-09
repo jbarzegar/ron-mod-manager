@@ -12,25 +12,27 @@ import (
 	"github.com/mholt/archiver/v3"
 )
 
-func extract7ZFile(f sevenzip.File) error {
-	rc, err := f.Open()
-	if err != nil {
-		return err
-	}
-	defer rc.Close()
+// func extract7ZFile(f sevenzip.File) error {
+// 	rc, err := f.Open()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer rc.Close()
 
-	// Extract the file
+// 	// Extract the file
 
-	return nil
-}
+// 	return nil
+// }
 
-func extract7ZArchive(src string, dest string, overwrite bool) error {
+func extract7ZArchive(src string, dest string, overwrite bool) (err error) {
 	r, err := sevenzip.OpenReader(src)
 	if err != nil {
 		return err
 	}
 
-	defer r.Close()
+	defer func() {
+		err = r.Close()
+	}()
 
 	for _, f := range r.File {
 		filePath := filepath.Join(dest, f.Name)
@@ -42,7 +44,9 @@ func extract7ZArchive(src string, dest string, overwrite bool) error {
 		}
 		if f.FileInfo().IsDir() {
 			slog.Debug("creating directory...")
-			os.MkdirAll(filePath, os.ModePerm)
+			if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -54,13 +58,17 @@ func extract7ZArchive(src string, dest string, overwrite bool) error {
 		if err != nil {
 			return err
 		}
-		defer dstFile.Close()
+		defer func() {
+			err = dstFile.Close()
+		}()
 
 		fileInArchive, err := f.Open()
 		if err != nil {
 			return err
 		}
-		defer fileInArchive.Close()
+		defer func() {
+			err = fileInArchive.Close()
+		}()
 
 		if _, err := io.Copy(dstFile, fileInArchive); err != nil {
 			return err
@@ -68,7 +76,7 @@ func extract7ZArchive(src string, dest string, overwrite bool) error {
 
 	}
 
-	return nil
+	return err
 }
 
 func Extract(src string, dest string, overwrite bool) error {

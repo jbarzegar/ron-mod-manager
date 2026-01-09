@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
+	"github.com/jbarzegar/ron-mod-manager/ent"
 )
 
 type MockMod struct {
@@ -41,4 +42,21 @@ func (h *MockIOHandler) InstallMod(payload Installable) error {
 	}
 
 	return nil
+}
+
+func (h *MockIOHandler) UninstallMod(payload []*ent.Pak) error {
+	return nil
+}
+
+func (h *MockIOHandler) DeleteMod(modPath string) error {
+	return nil
+}
+
+func (h *MockIOHandler) PathExists(path string) bool {
+	return false
+}
+
+func (h *MockIOHandler) GetUntracked(registered []string) ([]*unTracked, error) {
+	t := []*unTracked{}
+	return t, nil
 }

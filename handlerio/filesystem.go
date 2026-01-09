@@ -19,9 +19,9 @@ type FileSystemHandler struct {
 }
 
 // collectChoices gets all possible choices from an archive
-func collectChoices(p string) []archive.Choice {
+func collectChoices(p string) ([]archive.Choice, error) {
 	choices := []archive.Choice{}
-	filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
 		if !d.Type().IsDir() {
 			ext := filepath.Ext(path)
 			_, f := filepath.Split(path)
@@ -35,8 +35,11 @@ func collectChoices(p string) []archive.Choice {
 		}
 		return err
 	})
+	if err != nil {
+		return []archive.Choice{}, err
+	}
 
-	return choices
+	return choices, nil
 }
 
 func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]archive.Choice, error) {
@@ -45,12 +48,15 @@ func (h *FileSystemHandler) AddMod(archivePath string, outputPath string) ([]arc
 	}
 
 	// get choices
-	choices := collectChoices(outputPath)
+	choices, err := collectChoices(outputPath)
+	if err != nil {
+		return []archive.Choice{}, err
+	}
 
 	return choices, nil
 }
 
-func (h *FileSystemHandler) InstallMod(payload Installable) error {
+func (h *FileSystemHandler) InstallMod(payload Installable) (err error) {
 	// install mods to the staging folder
 	for _, x := range payload.Assets.Paks {
 		pakPath := filepath.Join(h.Config.ModDir, h.Config.StagingModFolderName, x.Name)
@@ -61,7 +67,9 @@ func (h *FileSystemHandler) InstallMod(payload Installable) error {
 				err,
 			)
 		}
-		defer f.Close()
+		defer func() {
+			err = f.Close()
+		}()
 		// copy the paks around
 		w, err := os.Create(pakPath)
 		if err != nil {
@@ -79,7 +87,7 @@ func (h *FileSystemHandler) InstallMod(payload Installable) error {
 			)
 		}
 	}
-	return nil
+	return err
 }
 
 func (h *FileSystemHandler) UninstallMod(pakPaths []*ent.Pak) error {

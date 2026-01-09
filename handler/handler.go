@@ -6,7 +6,6 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/google/uuid"
 	"github.com/jbarzegar/ron-mod-manager/appconfig"
 	"github.com/jbarzegar/ron-mod-manager/archive"
 	"github.com/jbarzegar/ron-mod-manager/ent"
@@ -25,20 +24,20 @@ type AddModResponse struct {
 	Choices []archive.Choice `json:"choices"`
 }
 
-type handler interface {
-	// get all mods avaiable to the db
-	GetAllMods() (actions.AllModsResponse, error)
-	// get all mods currently marked as "staged"
-	// staged mods are ones being loaded into the game at this moment
-	GetStagedMods() (actions.StagedResponse, error)
-	// add an archive as a mod
-	AddMod(archivePath string) (AddModResponse, error)
-	AddModByID(modId int) (AddModResponse, error)
-	// install a mod using an instance of a mod version
-	InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error
-	// uninstall a mod from the staging area
-	UninstallMod(modID []int) error
-}
+// type handler interface {
+// 	// get all mods avaiable to the db
+// 	GetAllMods() (actions.AllModsResponse, error)
+// 	// get all mods currently marked as "staged"
+// 	// staged mods are ones being loaded into the game at this moment
+// 	GetStagedMods() (actions.StagedResponse, error)
+// 	// add an archive as a mod
+// 	AddMod(archivePath string) (AddModResponse, error)
+// 	AddModByID(modId int) (AddModResponse, error)
+// 	// install a mod using an instance of a mod version
+// 	InstallMod(modID int, modVersion *ent.ModVersion, paksToActivate []uuid.UUID) error
+// 	// uninstall a mod from the staging area
+// 	UninstallMod(modID []int) error
+// }
 
 // defines a Handler struct
 // a Handler struct takes in a number of dependencies
@@ -252,7 +251,9 @@ func (h *Handler) DeleteMod(req actions.DeleteModRequest) error {
 			}
 			// unstage the mod if it's active
 			if md.State == mod.StateActivate {
-				h.Io.UninstallMod(ids)
+				if err := h.Io.UninstallMod(ids); err != nil {
+					return err
+				}
 			}
 			for _, id := range ids {
 				if _, err := db.Pak.Delete().Where(pak.IDEQ(id.ID)).Exec(context.TODO()); err != nil {
