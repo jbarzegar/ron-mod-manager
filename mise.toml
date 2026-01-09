@@ -5,11 +5,6 @@ atlas = "latest"
 buf = "latest"
 golangci-lint = "latest"
 "go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
-
-
-golangci-lint = "latest"
-"go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
-
 [env]
 CGO_ENABLED = "1"
 
