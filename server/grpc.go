@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/jbarzegar/ron-mod-manager/ent"
@@ -11,12 +12,18 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
+func setupHandler(appHandler handler.Handler) *grpcactionsv1.ServiceHandlerServer {
+	slog.Info("grpc server started")
+
+	return &grpcactionsv1.ServiceHandlerServer{
+		Handler: appHandler,
+	}
+}
+
 func CreateGRPCServer(_ *ent.Client, appHandler handler.Handler, conf ServerConf) error {
 	mux := http.NewServeMux()
 	path, serviceHandler := servicev1connect.NewServiceHandler(
-		&grpcactionsv1.ServiceHandlerServer{
-			Handler: appHandler,
-		},
+		setupHandler(appHandler),
 	)
 	mux.Handle(path, serviceHandler)
 
@@ -24,4 +31,5 @@ func CreateGRPCServer(_ *ent.Client, appHandler handler.Handler, conf ServerConf
 		conf.Addr,
 		h2c.NewHandler(mux, &http2.Server{}),
 	)
+
 }
