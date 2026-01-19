@@ -4,15 +4,18 @@ package service.v1;
 import "service/v1/mod.proto";
 
 message AddArchiveRequest {
-  string archive_path = 1;
-  string name = 2;
+  string id = 1;
+  string archive_path = 2;
+  string name = 4;
 }
 
 // AddArchiveResponse returns the instance of the installed archive
 // and a list of potential choices
 message AddArchiveResponse {
-  Archive archive = 1;
-  repeated Choice choices = 2;
+  int32 mod_id = 1;
+  string mod_version_id = 2;
+  Archive archive = 3;
+  repeated Choice choices = 4;
 }
 
 message GetAllModsRequest {}

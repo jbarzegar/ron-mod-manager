@@ -20,6 +20,8 @@ func mapAddArchiveResponse(result *handler.AddModResponse) *servicev1.AddArchive
 	}
 
 	response := servicev1.AddArchiveResponse{
+		ModId:        int32(result.Mod.ID),
+		ModVersionId: result.ModVersion.UUID.String(),
 		Archive: &servicev1.Archive{
 			Name:        result.Archive.Name,
 			ArchivePath: result.Archive.ArchivePath,
@@ -52,6 +54,7 @@ func mapGetAllModsResponse(result *actions.AllModsResponse) servicev1.GetAllMods
 	for _, mod := range result.Mods {
 		data = append(data,
 			&servicev1.Mod{
+				Id:            int32(mod.ID),
 				Name:          mod.Name,
 				State:         mapStateToEnum(mod.State),
 				ActiveVersion: &mod.ActiveVersion,

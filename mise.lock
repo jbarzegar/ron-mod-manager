@@ -15,6 +15,10 @@ url = "https://github.com/bufbuild/buf/releases/download/v1.61.0/buf-Darwin-arm6
 version = "1.24.11"
 backend = "core:go"
 
+[[tools."go:github.com/fullstorydev/grpcui/cmd/grpcui"]]
+version = "v1.4.3"
+backend = "go:github.com/fullstorydev/grpcui/cmd/grpcui"
+
 [[tools."go:github.com/nametake/golangci-lint-langserver"]]
 version = "5725c355362522eabc923ef100072fc1f3e23313"
 backend = "go:github.com/nametake/golangci-lint-langserver"

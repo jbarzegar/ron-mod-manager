@@ -3,6 +3,7 @@ package server
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/jbarzegar/ron-mod-manager/ent"
 	"github.com/jbarzegar/ron-mod-manager/handler"
@@ -13,10 +14,14 @@ import (
 )
 
 func setupHandler(appHandler handler.Handler) *grpcactionsv1.ServiceHandlerServer {
-	slog.Info("grpc server started")
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	logger.Info("grpc server started")
 
 	return &grpcactionsv1.ServiceHandlerServer{
 		Handler: appHandler,
+		Logger:  logger,
 	}
 }
 

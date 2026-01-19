@@ -75,6 +75,7 @@ func (h *Handler) GetAllMods() (*actions.AllModsResponse, error) {
 		}
 
 		mappedMod := actions.AllModsEntry{
+			ID:            m.ID,
 			Name:          m.Name,
 			State:         m.State.String(),
 			Origin:        m.Origin,
@@ -98,7 +99,6 @@ func (h *Handler) GetArchives(req *actions.GetArchiveRequest) (*actions.GetArchi
 	registeredPaths := []string{}
 	for _, archive := range archives {
 		a := actions.GetArchivesEntry{
-			ID:                 archive.ID,
 			Name:               archive.Name,
 			Path:               archive.ArchivePath,
 			Installed:          archive.Installed,
@@ -145,7 +145,6 @@ func (h *Handler) GetArchives(req *actions.GetArchiveRequest) (*actions.GetArchi
 
 		for _, d := range dirs {
 			resp.UntrackedArchives = append(resp.UntrackedArchives, actions.GetArchivesEntry{
-				ID:   -1,
 				Name: d.Name,
 				Path: d.Path,
 				// we can assume this exists. Since this is read directly from the file system

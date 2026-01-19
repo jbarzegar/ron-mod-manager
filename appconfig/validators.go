@@ -11,7 +11,7 @@ func validateRonDir(cfg AppConfig) error {
 	dir := cfg.GameDir
 
 	if dir == "unknown" {
-		return errors.New("dir not set")
+		return errors.New("dir not set" + dir)
 	}
 
 	dirsToCheck := [3]string{"ReadyOrNot.exe", "Engine", "ReadyOrNot"}

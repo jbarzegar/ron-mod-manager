@@ -66,6 +66,7 @@ type StagedResponse struct {
 }
 
 type AllModsEntry struct {
+	ID            int               `json:"id"`
 	Name          string            `json:"name"`
 	State         string            `json:"state"`
 	Origin        *string           `json:"origin"`

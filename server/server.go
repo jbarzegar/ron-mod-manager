@@ -5,7 +5,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -46,7 +45,6 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 			return err
 		}
 
-		fmt.Println(req.Untracked)
 		archives, err := h.GetArchives(req)
 
 		if err != nil {
