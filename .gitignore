@@ -5,3 +5,6 @@ test/
 *.sqlite
 __debug_bin*
 __bruno
+
+proto/**/*.go
+!proto/**/*.proto

@@ -3,6 +3,7 @@ module github.com/jbarzegar/ron-mod-manager
 go 1.24.0
 
 require (
+	connectrpc.com/connect v1.19.1
 	entgo.io/ent v0.14.3
 	github.com/bodgit/sevenzip v1.6.0
 	github.com/gabriel-vasile/mimetype v1.4.8
@@ -11,6 +12,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mholt/archiver/v3 v3.5.1
 	golang.org/x/net v0.33.0
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -25,7 +27,7 @@ require (
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect

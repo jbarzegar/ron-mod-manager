@@ -2,13 +2,16 @@
 go = "1.24"
 watchexec = "latest"
 atlas = "latest"
-
+buf = "latest"
 golangci-lint = "latest"
 "go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
-
+"go:github.com/fullstorydev/grpcui/cmd/grpcui" = "v1.4.3"
 [env]
 CGO_ENABLED = "1"
 
+[settings]
+experimental = true
+lockfile = true
 
 [tasks.entviz]
 description = "Create entviz"
@@ -17,6 +20,16 @@ run = "go run -mod=mod ariga.io/entviz ./ent/schema"
 [tasks.genent]
 description = "Generate ent code"
 run = "go generate ./ent"
+
+[tasks.genproto]
+description = "Generate go code from protobuf"
+run = "buf generate"
+
+[tasks.generate]
+alias = ["gen"]
+description = "Generate all the things"
+depends = ["genent", "genproto"]
+run = "go mod tidy"
 
 [tasks.dev]
 description = "Run code"

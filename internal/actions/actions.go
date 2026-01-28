@@ -5,7 +5,7 @@ import (
 	"github.com/jbarzegar/ron-mod-manager/ent"
 )
 
-type AddRequest struct {
+type AddArchiveRequest struct {
 	// If ID is supplied in a request
 	// It's assumed that you're "reinstalling"
 	// a mod
@@ -66,6 +66,7 @@ type StagedResponse struct {
 }
 
 type AllModsEntry struct {
+	ID            int               `json:"id"`
 	Name          string            `json:"name"`
 	State         string            `json:"state"`
 	Origin        *string           `json:"origin"`

@@ -39,13 +39,13 @@ func initTestHandler(t *testing.T, choices []a.Choice) (*handler.Handler, *handl
 	return &h, ioHandler, client
 }
 
-// TestShouldAddMod tests that a mod can be added via an archive
+// TestShouldAddArchive tests that a mod can be added via an archive
 // This test specifically should return a mod with no choices
-func TestShouldAddMod(t *testing.T) {
+func TestShouldAddArchive(t *testing.T) {
 	h, _, client := initTestHandler(t, noChoices)
 
 	expectedName := "test-mod"
-	r, err := h.AddMod("/path/to/archive.zip", expectedName)
+	r, err := h.AddArchive("/path/to/archive.zip", expectedName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func TestShouldAddModWithChoices(t *testing.T) {
 	expectedName := "test-mod"
 	h, _, _ := initTestHandler(t, choices)
 
-	r, err := h.AddMod("/path/to/archive.zip", expectedName)
+	r, err := h.AddArchive("/path/to/archive.zip", expectedName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +190,7 @@ func TestShouldInstallModWithNoChoices(t *testing.T) {
 	h, hio, db := initTestHandler(t, noChoices)
 
 	// do an addMod
-	addModResp, err := h.AddMod(testMod.Path, testMod.Name)
+	addModResp, err := h.AddArchive(testMod.Path, testMod.Name)
 	if err != nil {
 		t.Fatal(err)
 	}

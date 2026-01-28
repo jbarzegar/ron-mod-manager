@@ -1,0 +1,51 @@
+syntax = "proto3";
+package service.v1;
+
+enum ModState {
+  MOD_STATE_UNSPECIFIED = 0;
+  MOD_STATE_INACTIVE = 1;
+  MOD_STATE_ACTIVE = 2;
+}
+
+message Mod {
+  int32 id = 1;
+  string name = 2;
+  ModState state = 3;
+  optional string active_version = 4;
+  optional string origin = 5;
+}
+
+message Pak {
+  string uuid = 1;
+  string name = 2;
+  string path = 3;
+  bool active = 4;
+}
+
+message StagedMod {
+  string name = 1;
+  ModState state = 2;
+  string origin = 3;
+  string active_version = 4;
+  string active_version_id = 5;
+}
+
+message Archive {
+  string id = 1;
+  string name = 2;
+  string archive_path = 3;
+  string md5_sum = 4;
+  bool installed = 5;
+}
+
+message Choice {
+  string id = 1;
+  string name = 2;
+  string full_path = 3;
+}
+
+enum DeleteModType {
+  DELETE_MOD_TYPE_UNSPECIFIED = 0;
+  DELETE_MOD_TYPE_ALL = 1;
+  DELETE_MOD_TYPE_ACTIVE = 2;
+}

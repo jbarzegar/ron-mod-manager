@@ -45,19 +45,20 @@ func main() {
 	}
 
 	// setup handlers for transport layer
-	iohandler := &handlerio.FileSystemHandler{
+	IOHandler := &handlerio.FileSystemHandler{
 		Config: appConf,
 	}
-	h := handler.Handler{Db: db, Config: appConf, Io: iohandler}
+	appHandler := handler.Handler{Db: db, Config: appConf, Io: IOHandler}
 
 	// start server
-	if err := server.CreateHTTPServer(
+	if err := server.CreateGRPCServer(
 		db,
-		h,
+		appHandler,
 		server.ServerConf{Addr: ":5000"},
 	); err != nil {
 		log.Fatal(err)
-	} else {
-		slog.Info("Server started")
+		return
 	}
+
+	slog.Info("Server started")
 }

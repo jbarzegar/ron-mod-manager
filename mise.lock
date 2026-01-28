@@ -1,0 +1,32 @@
+[[tools.atlas]]
+version = "1.0.0"
+backend = "aqua:ariga/atlas"
+
+[[tools.buf]]
+version = "1.61.0"
+backend = "aqua:bufbuild/buf"
+
+[tools.buf.platforms.macos-arm64]
+checksum = "sha256:23e05a680178d96c9107e451de5f3d843a8805a91d201dca6687488f421467bc"
+size = 29114874
+url = "https://github.com/bufbuild/buf/releases/download/v1.61.0/buf-Darwin-arm64.tar.gz"
+
+[[tools.go]]
+version = "1.24.11"
+backend = "core:go"
+
+[[tools."go:github.com/fullstorydev/grpcui/cmd/grpcui"]]
+version = "v1.4.3"
+backend = "go:github.com/fullstorydev/grpcui/cmd/grpcui"
+
+[[tools."go:github.com/nametake/golangci-lint-langserver"]]
+version = "5725c355362522eabc923ef100072fc1f3e23313"
+backend = "go:github.com/nametake/golangci-lint-langserver"
+
+[[tools.golangci-lint]]
+version = "v2.6.2"
+backend = "aqua:golangci/golangci-lint"
+
+[[tools.watchexec]]
+version = "2.3.2"
+backend = "aqua:watchexec/watchexec"

@@ -5,7 +5,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -46,7 +45,6 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 			return err
 		}
 
-		fmt.Println(req.Untracked)
 		archives, err := h.GetArchives(req)
 
 		if err != nil {
@@ -72,7 +70,7 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 		// archivePath := c.Query("archivePath")
 		// name := c.Query("name")
 
-		var body *actions.AddRequest
+		var body *actions.AddArchiveRequest
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return err
@@ -88,7 +86,7 @@ func CreateHTTPServer(db *ent.Client, h handler.Handler, conf ServerConf) error 
 				SendString("name must be provided")
 		}
 
-		archive, err := h.AddMod(body.ArchivePath, body.Name)
+		archive, err := h.AddArchive(body.ArchivePath, body.Name)
 		if err != nil {
 			slog.Error("Error adding mod")
 			slog.Error(err.Error())
