@@ -4,8 +4,11 @@ watchexec = "latest"
 atlas = "latest"
 buf = "latest"
 golangci-lint = "latest"
+pnpm = "latest"
 "go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
 "go:github.com/fullstorydev/grpcui/cmd/grpcui" = "v1.4.3"
+"go:github.com/wailsapp/wails/v2/cmd/wails" = "2.11.0"
+
 [env]
 CGO_ENABLED = "1"
 
