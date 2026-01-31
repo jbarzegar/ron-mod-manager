@@ -8,3 +8,8 @@ __bruno
 
 proto/**/*.go
 !proto/**/*.proto
+
+ui/build/bin
+ui/node_modules
+ui/dist
+ui/wailsjs
