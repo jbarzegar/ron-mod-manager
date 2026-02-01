@@ -19,4 +19,4 @@ jobs:
           version: 2.3.13
       - name: Biome Lint
         working-directory: ui
-        run: biome ci ui
+        run: biome ci
