@@ -8,6 +8,7 @@ pnpm = "latest"
 "go:github.com/nametake/golangci-lint-langserver" = "5725c355362522eabc923ef100072fc1f3e23313"
 "go:github.com/fullstorydev/grpcui/cmd/grpcui" = "v1.4.3"
 "go:github.com/wailsapp/wails/v2/cmd/wails" = "2.11.0"
+"npm:@biomejs/biome" = "2.3.13"
 
 [env]
 CGO_ENABLED = "1"
@@ -46,3 +47,11 @@ run = 'atlas migrate apply --dir "file://ent/migrate/migrations" --url "sqlite:/
 
 [tasks."lint"]
 run = "golangci-lint run"
+
+[tasks."lint:ts"]
+dir = "./ui"
+run = "npx @biomejs/biome lint --fix"
+
+[tasks."fmt:ts"]
+dir = "./ui"
+run = "npx @biomejs/biome format --write"
