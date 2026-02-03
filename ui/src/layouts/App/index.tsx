@@ -1,4 +1,4 @@
-import { useSignal } from "@preact/signals";
+import { computed, useSignal } from "@preact/signals";
 import { clsx } from "clsx";
 import type { ComponentChild } from "preact";
 import { useEffect, useRef } from "preact/hooks";
@@ -62,9 +62,43 @@ const Section = (p: SectionProps) => {
 };
 
 export const AppLayout = () => {
+	const dragging = useSignal(false);
+	const width = useSignal(0);
+
+	const sectionRef = useRef<HTMLDivElement>(null);
+	const { resizeHandle } = useResize({
+		dragHandleDirection: "right",
+		draggingSignal: dragging,
+		enabled: true,
+		max: Infinity,
+		min: 300,
+		mode: "width",
+		signal: width,
+		resizeHandleClass: "border border-red-500 left-0 h-full",
+	});
+
+	useEffect(() => {
+		setTimeout(() => {
+			if (sectionRef.current) {
+				const computedS = getComputedStyle(sectionRef.current);
+				const val = computedS.width;
+				width.value = parseInt(val, 10);
+			}
+		});
+	}, [sectionRef]);
+
+	const mainViewStyle = computed((): preact.CSSProperties => {
+		if (width.value) return { flexBasis: width.value };
+		return { flex: 4 };
+	});
+
 	return (
 		<div className="h-full flex relative gap-0.5">
-			<Section className="flex flex-col w-3/4 gap-0.5">
+			<div
+				className="flex flex-col gap-0.5"
+				ref={sectionRef}
+				style={mainViewStyle.value}
+			>
 				<Section className="bg-accent-content p-4">ACTIONS</Section>
 				<Section
 					className="bg-accent-content h-4/5"
@@ -75,8 +109,11 @@ export const AppLayout = () => {
 					Main
 				</Section>
 				<Section className="flex-1/5 bg-accent-content h-1/5">Context</Section>
-			</Section>
-			<Section className="bg-accent-content w-1/4 relative">SIDEBAR</Section>
+			</div>
+			<div className="bg-accent-content flex-1 relative">
+				{resizeHandle}
+				div.w-full SIDEBAR
+			</div>
 		</div>
 	);
 };
