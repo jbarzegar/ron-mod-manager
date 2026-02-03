@@ -13,3 +13,6 @@ ui/build/bin
 ui/node_modules
 ui/dist
 ui/wailsjs
+
+*storybook.log
+storybook-static
