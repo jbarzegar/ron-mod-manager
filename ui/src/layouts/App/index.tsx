@@ -1,5 +1,4 @@
 import { computed, useSignal } from "@preact/signals";
-import { clsx } from "clsx";
 import type { ComponentChild } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import {
@@ -20,22 +19,14 @@ type SectionProps = {
 
 const Section = (p: SectionProps) => {
 	const size = useSignal(0);
-	const dragging = useSignal(false);
 	const { resizeHandle, style } = useResize({
 		mode: p.dragDirection || "width",
 		enabled: p.draggable || false,
-		draggingSignal: dragging,
 		dragHandleDirection: p.dragHandleDirection || "right",
 		signal: size,
 		max: Infinity,
 		min: 80,
-		resizeHandleClass: clsx(
-			`border border-red-500 ${p.dragHandleDirection}-0`,
-			{
-				"w-full": p.dragDirection === "height",
-				"h-full": p.dragDirection === "width",
-			},
-		),
+		resizeHandleClass: `border-${(p.dragHandleDirection || "right")[0]}-3`,
 	});
 	const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -56,25 +47,23 @@ const Section = (p: SectionProps) => {
 			ref={sectionRef}
 		>
 			{resizeHandle}
-			{p.children}
+			<div className="p-5">{p.children}</div>
 		</div>
 	);
 };
 
 export const AppLayout = () => {
-	const dragging = useSignal(false);
 	const width = useSignal(0);
 
 	const sectionRef = useRef<HTMLDivElement>(null);
 	const { resizeHandle } = useResize({
-		dragHandleDirection: "right",
-		draggingSignal: dragging,
+		dragHandleDirection: "left",
 		enabled: true,
 		max: Infinity,
 		min: 300,
 		mode: "width",
 		signal: width,
-		resizeHandleClass: "border border-red-500 left-0 h-full",
+		resizeHandleClass: "border-l-3",
 	});
 
 	useEffect(() => {
@@ -93,27 +82,29 @@ export const AppLayout = () => {
 	});
 
 	return (
-		<div className="h-full flex relative gap-0.5">
+		<div className="h-full flex relative">
 			<div
-				className="flex flex-col gap-0.5"
+				className="flex flex-col"
 				ref={sectionRef}
 				style={mainViewStyle.value}
 			>
-				<Section className="bg-accent-content p-4">ACTIONS</Section>
+				<nav className="bg-slate-900 p-4 border-slate-700 border-b-3">
+					ACTIONS
+				</nav>
 				<Section
-					className="bg-accent-content h-4/5"
+					className="bg-slate-900 h-4/5"
 					draggable
 					dragDirection="height"
 					dragHandleDirection="bottom"
 				>
 					Main
 				</Section>
-				<Section className="flex-1/5 bg-accent-content h-1/5">Context</Section>
+				<footer className="flex-1/5 bg-slate-900 h-1/5">Context</footer>
 			</div>
-			<div className="bg-accent-content flex-1 relative">
+			<aside className="bg-slate-900 flex-1 relative">
 				{resizeHandle}
-				div.w-full SIDEBAR
-			</div>
+				<div className="p-5">div.w-full SIDEBAR</div>
+			</aside>
 		</div>
 	);
 };

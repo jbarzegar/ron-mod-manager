@@ -12,15 +12,13 @@ type UseResize = {
 	min: number;
 	max: number;
 	signal: Signal<number>;
-	draggingSignal: Signal<boolean>;
-	dragHandleDirection: DragHandleDirection;
-	resizeHandleClass: string;
+	dragHandleDirection?: DragHandleDirection;
+	resizeHandleClass?: string;
 };
 export const useResize = ({
 	enabled = true,
 	resizeHandleClass,
 	signal,
-	draggingSignal,
 	mode,
 	dragHandleDirection: dragDirection,
 	max = Number.MAX_SAFE_INTEGER,
@@ -29,8 +27,6 @@ export const useResize = ({
 	useMemo(() => {
 		const onMouseDown = (e: MouseEvent) => {
 			if (!enabled) return;
-
-			draggingSignal.value = true;
 
 			const { pageX: startX, pageY: startY } = e;
 			const startingVal = signal.value;
@@ -71,12 +67,18 @@ export const useResize = ({
 		const resizeHandle = !enabled ? null : (
 			<button
 				type="button"
-				class={clsx(`absolute ${resizeHandleClass}`, {
-					"cursor-row-resize": mode === "height",
-					"cursor-col-resize": mode === "width",
-				})}
+				class={clsx(
+					`absolute border ${resizeHandleClass}`,
+					{
+						"cursor-row-resize": mode === "height",
+						"cursor-col-resize": mode === "width",
+						"w-full": mode === "height",
+						"h-full": mode === "width",
+					},
+					`border-slate-700 hover:border-accent ${dragDirection}-0`,
+				)}
+				style={{ transition: "border-color ease 0.3s" }}
 				onMouseDown={onMouseDown}
-				onMouseUp={() => (draggingSignal.value = false)}
 			/>
 		);
 
