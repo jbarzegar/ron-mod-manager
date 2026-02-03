@@ -89,7 +89,7 @@ export const AppLayout = () => {
 				>
 					Main
 				</Section>
-				<footer className="flex-1/5 bg-slate-900 h-1/5">Context</footer>
+				<footer className="flex-1/5 bg-slate-900 h-1/5 z-10">Context</footer>
 			</div>
 			<aside className="bg-slate-900 flex-1 relative">
 				{resizeHandle}
