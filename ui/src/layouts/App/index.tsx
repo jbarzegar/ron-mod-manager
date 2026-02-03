@@ -18,6 +18,7 @@ type SectionProps = {
 };
 
 const Section = ({
+	draggable = false,
 	dragDirection = "width",
 	dragHandleDirection = "right",
 	...p
@@ -26,12 +27,12 @@ const Section = ({
 	const ref = useComputedInitialSize<HTMLDivElement>(size, dragDirection);
 
 	const { resizeHandle, style } = useResize({
-		mode: dragDirection,
-		enabled: p.draggable || false,
-		dragHandleDirection: dragHandleDirection,
 		signal: size,
 		max: Infinity,
-		min: 80,
+		min: 300,
+		enabled: draggable,
+		mode: dragDirection,
+		dragHandleDirection: dragHandleDirection,
 		resizeHandleClass: `border-${dragHandleDirection[0]}-3`,
 	});
 
@@ -55,13 +56,14 @@ export const AppLayout = () => {
 	const { resizeHandle } = useResize({
 		dragHandleDirection: "left",
 		enabled: true,
-		max: Infinity,
+		max: Number.MAX_SAFE_INTEGER,
 		min: 300,
 		mode,
 		signal: width,
 		resizeHandleClass: "border-l-3",
 	});
 
+	// ensure to set fallback styles if width.value is zero
 	const mainViewStyle = computed((): preact.CSSProperties => {
 		if (width.value) return { flexBasis: width.value };
 		return { flex: 4 };
