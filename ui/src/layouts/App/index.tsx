@@ -66,16 +66,6 @@ export const AppLayout = () => {
 		resizeHandleClass: "border-l-3",
 	});
 
-	useEffect(() => {
-		setTimeout(() => {
-			if (sectionRef.current) {
-				const computedS = getComputedStyle(sectionRef.current);
-				const val = computedS.width;
-				width.value = parseInt(val, 10);
-			}
-		});
-	}, [sectionRef]);
-
 	const mainViewStyle = computed((): preact.CSSProperties => {
 		if (width.value) return { flexBasis: width.value };
 		return { flex: 4 };
