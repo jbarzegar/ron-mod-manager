@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/suspicious/noAssignInExpressions: math must be done */
 import { computed, type Signal } from "@preact/signals";
 import { clsx } from "clsx";
+import type { TargetedKeyboardEvent } from "preact";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 
 export type DragMode = "width" | "height";
@@ -29,7 +30,7 @@ export const useResize = ({
 			if (!enabled) return;
 
 			const { pageX: startX, pageY: startY } = e;
-			const startingVal = signal.value;
+			const startingVal = signal.peek();
 
 			const updater = (e: MouseEvent) => {
 				const calcDelta = () => {
@@ -40,6 +41,7 @@ export const useResize = ({
 							return startingVal + e.pageX - startX;
 					}
 				};
+
 				// update the signal
 				signal.value = Math.max(Math.min(max, calcDelta()));
 				return;
@@ -60,8 +62,41 @@ export const useResize = ({
 			e.stopPropagation();
 		};
 
-		// this is the trick, computed signal which we can then
-		// pass directly to the style prop
+		const handleKeyPress = (key: string, sizeStep: number) => {
+			const s = signal.peek();
+			const inc = () => s + sizeStep;
+			const dec = () => s - sizeStep;
+
+			// TODO: Try to figure out if I can make this mess of switch/cases cleaner
+			if (mode === "height" && dragDirection === "bottom") {
+				switch (key) {
+					case "ArrowDown":
+						return inc();
+					case "ArrowUp":
+						return dec();
+				}
+			}
+
+			if (mode === "width") {
+				switch (key) {
+					case "ArrowRight":
+						return inc();
+					case "ArrowLeft":
+						return dec();
+				}
+			}
+
+			return s;
+		};
+		/**
+		 *
+		 * Enables the panes to be resized with keyboard bindings
+		 */
+		const onKeyDown = (evt: TargetedKeyboardEvent<HTMLButtonElement>) => {
+			const sizeStep = evt.shiftKey ? 30 : 10;
+			signal.value = handleKeyPress(evt.key, sizeStep);
+		};
+
 		const style = computed(() => `${mode}: ${signal.value}px`);
 
 		const resizeHandle = !enabled ? null : (
@@ -79,6 +114,7 @@ export const useResize = ({
 				)}
 				style={{ transition: "border-color ease 0.3s" }}
 				onMouseDown={onMouseDown}
+				onKeyDown={onKeyDown}
 			/>
 		);
 
