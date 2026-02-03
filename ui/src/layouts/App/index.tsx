@@ -1,9 +1,9 @@
 import { computed, useSignal } from "@preact/signals";
 import type { ComponentChild } from "preact";
-import { useEffect, useRef } from "preact/hooks";
 import {
 	type DragHandleDirection,
 	type DragMode,
+	useComputedInitialSize,
 	useResize,
 } from "../../hooks";
 
@@ -17,34 +17,29 @@ type SectionProps = {
 	dragHandleDirection?: DragHandleDirection;
 };
 
-const Section = (p: SectionProps) => {
+const Section = ({
+	dragDirection = "width",
+	dragHandleDirection = "right",
+	...p
+}: SectionProps) => {
 	const size = useSignal(0);
+	const ref = useComputedInitialSize<HTMLDivElement>(size, dragDirection);
+
 	const { resizeHandle, style } = useResize({
-		mode: p.dragDirection || "width",
+		mode: dragDirection,
 		enabled: p.draggable || false,
-		dragHandleDirection: p.dragHandleDirection || "right",
+		dragHandleDirection: dragHandleDirection,
 		signal: size,
 		max: Infinity,
 		min: 80,
-		resizeHandleClass: `border-${(p.dragHandleDirection || "right")[0]}-3`,
+		resizeHandleClass: `border-${dragHandleDirection[0]}-3`,
 	});
-	const sectionRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		if (sectionRef.current && p.draggable) {
-			const computedS = getComputedStyle(sectionRef.current);
-			if (p.dragDirection) {
-				const val = computedS[p.dragDirection];
-				size.value = parseInt(val, 10);
-			}
-		}
-	}, []);
 
 	return (
 		<div
 			className={`${p.className} relative`}
 			style={!size.value ? {} : style}
-			ref={sectionRef}
+			ref={ref}
 		>
 			{resizeHandle}
 			<div className="p-5">{p.children}</div>
@@ -54,14 +49,15 @@ const Section = (p: SectionProps) => {
 
 export const AppLayout = () => {
 	const width = useSignal(0);
+	const mode: DragMode = "width";
+	const ref = useComputedInitialSize<HTMLDivElement>(width, mode);
 
-	const sectionRef = useRef<HTMLDivElement>(null);
 	const { resizeHandle } = useResize({
 		dragHandleDirection: "left",
 		enabled: true,
 		max: Infinity,
 		min: 300,
-		mode: "width",
+		mode,
 		signal: width,
 		resizeHandleClass: "border-l-3",
 	});
@@ -73,11 +69,7 @@ export const AppLayout = () => {
 
 	return (
 		<div className="h-full flex relative">
-			<div
-				className="flex flex-col"
-				ref={sectionRef}
-				style={mainViewStyle.value}
-			>
+			<div className="flex flex-col" ref={ref} style={mainViewStyle.value}>
 				<nav className="bg-slate-900 p-4 border-slate-700 border-b-3">
 					ACTIONS
 				</nav>

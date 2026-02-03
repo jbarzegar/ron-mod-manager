@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/suspicious/noAssignInExpressions: math must be done */
 import { computed, type Signal } from "@preact/signals";
 import { clsx } from "clsx";
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 
 export type DragMode = "width" | "height";
 export type DragHandleDirection = "left" | "right" | "top" | "bottom";
@@ -84,3 +84,25 @@ export const useResize = ({
 
 		return { style, resizeHandle, onMouseDown };
 	}, [signal, min, max]);
+
+/**
+ * useComputedInitialSize sets a signal value in the number of pixels computed by the effect that will run on mount
+ * @param size signal that represents a number of pixels
+ * @param m which direction the size represents
+ * @returns ref that is used to compute the given size
+ */
+export function useComputedInitialSize<T extends Element>(
+	size: Signal<number>,
+	m: DragMode,
+) {
+	const r = useRef<T>(null);
+	useEffect(() => {
+		if (r.current) {
+			const computedS = getComputedStyle(r.current);
+			const val = computedS[m];
+			size.value = parseInt(val, 10);
+		}
+	}, []);
+
+	return r;
+}
