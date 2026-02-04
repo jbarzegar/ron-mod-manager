@@ -24,6 +24,9 @@
       }
     },
     "TypeScript": {
+      "language_servers": [
+        "tailwindcss-language-server"
+      ],
       "formatter": {
         "language_server": {
           "name": "biome"
