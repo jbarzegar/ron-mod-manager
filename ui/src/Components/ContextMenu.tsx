@@ -1,7 +1,7 @@
 import type { Signal } from "@preact/signals";
 import clsx from "clsx";
 import type { RefObject } from "preact";
-import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
+import { useCallback, useEffect, useRef } from "preact/hooks";
 
 const GroupDropDown = () => {
 	return (
@@ -62,10 +62,10 @@ const mockLogLines = new Array(200)
 			`Mock log ${i} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
 	);
 
-const LogMenu = () => {
+const LogMenu = (p: { logRef: RefObject<HTMLUListElement> }) => {
 	return (
 		<div class="flex flex-col relative overflow-y-scroll">
-			<ul class="mt-1 mb-20">
+			<ul class="mt-1 mb-20" ref={p.logRef}>
 				{mockLogLines.map((x, i) => (
 					<li
 						key={i}
@@ -87,13 +87,13 @@ const computeHeight = (el: HTMLElement | Element) =>
  *
  * TODO: This is something that should be refactored to use signals properly(I guess?)
  */
-const computeMenuSize = (el: HTMLElement | null) =>
+const computeMenuSize = (el: RefObject<HTMLElement>) =>
 	requestAnimationFrame(() => {
 		// noop on null footer
-		if (!el) return;
+		if (!el.current) return;
 
-		const footerHeight = computeHeight(el);
-		const [actionBar, logMenu] = el.children[0].children as unknown as [
+		const footerHeight = computeHeight(el.current);
+		const [actionBar, logMenu] = el.current.children[0].children as unknown as [
 			Element,
 			HTMLDivElement,
 		];
@@ -109,26 +109,17 @@ const computeMenuSize = (el: HTMLElement | null) =>
 		logMenu.style.height = `${logMenuHeight}px`;
 	});
 
-const useScrollLogMenu = (el: RefObject<HTMLElement>) =>
+const useScrollLogMenu = (logMenu: RefObject<HTMLElement>) =>
 	useCallback(
 		(direction: "top" | "bottom") => {
-			if (!el.current) return;
+			if (!logMenu.current) return;
 
-			const logMenu = el.current.children[0].children[1];
-
-			let scrollHeight: number;
-			switch (direction) {
-				case "top":
-					scrollHeight = 0;
-					break;
-				case "bottom":
-					scrollHeight = logMenu.scrollHeight;
-					break;
-			}
-
-			logMenu.scrollTo(0, scrollHeight);
+			logMenu.current.scrollIntoView({
+				block: direction === "bottom" ? "end" : "start",
+				behavior: "smooth",
+			});
 		},
-		[el.current],
+		[logMenu.current],
 	);
 
 interface ContextMenuProps {
@@ -137,17 +128,21 @@ interface ContextMenuProps {
 }
 export const ContextMenu = (props: ContextMenuProps) => {
 	const footerRef = useRef<HTMLElement>(null);
+	const logMenuRef = useRef<HTMLUListElement>(null);
+
+	// triggers menu compute when the parent is resized
 	useEffect(() => {
-		computeMenuSize(footerRef.current);
+		computeMenuSize(footerRef);
 	}, [props.parentSignal.value]);
 
-	const handleMenuJump = useScrollLogMenu(footerRef);
+	// sets up scroll up/down handler
+	const handleMenuJump = useScrollLogMenu(logMenuRef);
 
 	return (
 		<footer className={clsx(props.className, " bg-slate-900")} ref={footerRef}>
 			<div class="flex flex-col">
 				<ActionBar onJump={handleMenuJump} />
-				<LogMenu />
+				<LogMenu logRef={logMenuRef} />
 			</div>
 		</footer>
 	);
