@@ -2,12 +2,14 @@ package ui
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/jbarzegar/ron-mod-manager/ui/contextmenu"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx         context.Context
+	ContextMenu *contextmenu.ContextMenu
 }
 
 // NewApp creates a new App application struct
@@ -19,9 +21,9 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.ContextMenu = contextmenu.NewContextMenu(ctx)
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) SetupLogs() []contextmenu.LogEntry {
+	return a.ContextMenu.DebugLog.GetInitialLogs()
 }

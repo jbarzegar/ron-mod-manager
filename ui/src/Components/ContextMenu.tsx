@@ -2,6 +2,7 @@ import type { Signal } from "@preact/signals";
 import clsx from "clsx";
 import type { RefObject } from "preact";
 import { useCallback, useEffect, useRef } from "preact/hooks";
+import { LogMenu } from "./DebugLog";
 
 const GroupDropDown = () => {
 	return (
@@ -51,30 +52,6 @@ const ActionBar = (props: ActionBarProps) => {
 					⬇️
 				</button>
 			</div>
-		</div>
-	);
-};
-
-const mockLogLines = new Array(200)
-	.fill("")
-	.map(
-		(_, i) =>
-			`Mock log ${i} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`,
-	);
-
-const LogMenu = (p: { logRef: RefObject<HTMLUListElement> }) => {
-	return (
-		<div class="flex flex-col relative overflow-y-scroll">
-			<ul class="mt-1 mb-20" ref={p.logRef}>
-				{mockLogLines.map((x, i) => (
-					<li
-						key={i}
-						class="border border-slate-500 text-sm p-1 even:bg-slate-800"
-					>
-						{x}
-					</li>
-				))}
-			</ul>
 		</div>
 	);
 };
