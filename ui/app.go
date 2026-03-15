@@ -18,6 +18,7 @@ import (
 type App struct {
 	ctx         context.Context
 	ContextMenu *contextmenu.ContextMenu
+	Logger      *slog.Logger
 }
 
 // NewApp creates a new App application struct
@@ -84,6 +85,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ContextMenu = contextmenu.NewContextMenu(ctx)
 
 	logger := a.ContextMenu.DebugLog.NewLogger()
+	a.Logger = logger
 	startServer(logger)
 }
 
@@ -94,8 +96,5 @@ func (a *App) SetupLogs() []contextmenu.LogEntry {
 
 // called in frontend
 func (a *App) AddNewLog() {
-	a.ContextMenu.DebugLog.NewLogs([]string{
-		"new log from event. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-	})
-
+	a.Logger.Debug("New log from event call", "test", "data")
 }
