@@ -1,4 +1,4 @@
-import { batch, type Signal, signal } from "@preact/signals";
+import { type Signal, signal } from "@preact/signals";
 import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
 import type { contextmenu } from "../../../wailsjs/go/models";
@@ -18,7 +18,11 @@ const subscribeForNewMessages = () =>
 		logMessages.value = [...logMessages.peek(), ...data];
 	});
 
-export const useSetupLogMenu = () => {
+/**
+ *
+ * @param onLogMessageUpdate callback fn to update UI if logMessages is updated
+ */
+export const useSetupLogMenu = (onLogMessageUpdate: () => void) => {
 	// Get initial logs & subscribe to events for additional Logs
 	// on mount
 	useEffect(() => {
@@ -31,6 +35,10 @@ export const useSetupLogMenu = () => {
 		}
 		subscribeForNewMessages();
 	}, []);
+
+	useEffect(() => {
+		onLogMessageUpdate();
+	}, [logMessages.value]);
 };
 
 interface LogMenuProps {

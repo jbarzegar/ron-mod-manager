@@ -103,19 +103,28 @@ interface ContextMenuProps {
 	parentSignal: Signal<number>;
 	className?: string;
 }
+/**
+ * ContextMenu contains non-direct modding information. Right now
+ * ContextMenu just contains a log menu for debugging. But
+ * additional meta information can be directed here
+ * @param props
+ */
 export const ContextMenu = (props: ContextMenuProps) => {
 	const footerRef = useRef<HTMLElement>(null);
-	const logMenuRef = useRef<HTMLUListElement>(null);
-
 	// triggers menu compute when the parent is resized
 	useEffect(() => {
 		computeMenuSize(footerRef);
 	}, [props.parentSignal.value]);
 
+	const logMenuRef = useRef<HTMLUListElement>(null);
 	// sets up scroll up/down handler
 	const handleMenuJump = useScrollLogMenu(logMenuRef);
+	// when the log menu updated we'll jump to the bottom
+	// TODO: make this a configurable option. It would be nice to
+	// allow the user to enable/disable the behaviour if they're
+	// searching through logs
+	useSetupLogMenu(() => handleMenuJump("bottom"));
 
-	useSetupLogMenu();
 	return (
 		<footer className={clsx(props.className, " bg-slate-900")} ref={footerRef}>
 			<div class="flex flex-col">
