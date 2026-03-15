@@ -9,6 +9,8 @@ __bruno
 proto/**/*.go
 !proto/**/*.proto
 
+build/bin
+build/bin
 ui/build/bin
 ui/node_modules
 ui/dist
