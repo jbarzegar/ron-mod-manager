@@ -47,8 +47,7 @@ func startServer(logger *slog.Logger) {
 	// pre flight setup
 	logger.Info("setting up config")
 	if err := appconfig.Setup(); err != nil {
-		logger.Error("error setting up config")
-		// log.Fatal(err)
+		logger.Error("error setting up config", "err", err)
 	}
 	logger.Info("appconfig setup")
 

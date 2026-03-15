@@ -85,6 +85,10 @@ func (h *debugLogHandler) Handle(ctx context.Context, rec slog.Record) error {
 		rec.Level,
 		rec.Message,
 	)
+	rec.Attrs(func(a slog.Attr) bool {
+		str += fmt.Sprintf(" :: %v=%v", a.Key, a.Value)
+		return true
+	})
 	h.debugLog.NewLogs([]string{str})
 	return nil
 }
