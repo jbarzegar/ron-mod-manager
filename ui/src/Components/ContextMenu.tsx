@@ -1,0 +1,136 @@
+import type { Signal } from "@preact/signals";
+import clsx from "clsx";
+import type { RefObject } from "preact";
+import { useCallback, useEffect, useRef } from "preact/hooks";
+import { LogMenu, logMessages, useSetupLogMenu } from "./DebugLog";
+
+const GroupDropDown = () => {
+	return (
+		<div className="dropdown w-full">
+			<button tabIndex={0} type="button" class="btn btn-sm btn-wide">
+				Groups
+			</button>
+			<ul
+				tabindex={-1}
+				class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+			>
+				<li>Item 1</li>
+				<li>Item 2</li>
+			</ul>
+		</div>
+	);
+};
+
+interface ActionBarProps {
+	onJump(direction: "bottom" | "top"): void;
+}
+const ActionBar = (props: ActionBarProps) => {
+	return (
+		<div class="flex items-center px-4 w-full gap-2">
+			<p class="flex-2">Filter</p>
+			<div className="flex-1">
+				<GroupDropDown />
+			</div>
+			<div class="flex-1">
+				<input class="flex-1" placeholder="Filter" />
+			</div>
+			<div className="flex gap-2">
+				<button
+					type="button"
+					class="btn btn-circle btn-xs"
+					title="Scroll to top"
+					onClick={() => props.onJump("top")}
+				>
+					⬆️
+				</button>
+				<button
+					type="button"
+					class="btn btn-circle btn-xs"
+					title="Scroll to bottom"
+					onClick={() => props.onJump("bottom")}
+				>
+					⬇️
+				</button>
+			</div>
+		</div>
+	);
+};
+
+const computeHeight = (el: HTMLElement | Element) =>
+	parseInt(getComputedStyle(el).height, 10);
+
+/**  computeMenuSize calculates and sets the height of the present context menu
+ * this style change is done with **side effects**
+ *
+ * TODO: This is something that should be refactored to use signals properly(I guess?)
+ */
+const computeMenuSize = (el: RefObject<HTMLElement>) =>
+	requestAnimationFrame(() => {
+		// noop on null footer
+		if (!el.current) return;
+
+		const footerHeight = computeHeight(el.current);
+		const [actionBar, logMenu] = el.current.children[0].children as unknown as [
+			Element,
+			HTMLDivElement,
+		];
+
+		// Calculate the height of the logMenu. log menu is the
+		// size of the current footer offset by the action bar
+		// height
+		// honestly this feels awful to write and wonder if
+		// native code would be better
+		const logMenuHeight = footerHeight - computeHeight(actionBar);
+
+		// set the height
+		logMenu.style.height = `${logMenuHeight}px`;
+	});
+
+const useScrollLogMenu = (logMenu: RefObject<HTMLElement>) =>
+	useCallback(
+		(direction: "top" | "bottom") => {
+			if (!logMenu.current) return;
+
+			logMenu.current.scrollIntoView({
+				block: direction === "bottom" ? "end" : "start",
+				behavior: "smooth",
+			});
+		},
+		[logMenu.current],
+	);
+
+interface ContextMenuProps {
+	parentSignal: Signal<number>;
+	className?: string;
+}
+/**
+ * ContextMenu contains non-direct modding information. Right now
+ * ContextMenu just contains a log menu for debugging. But
+ * additional meta information can be directed here
+ * @param props
+ */
+export const ContextMenu = (props: ContextMenuProps) => {
+	const footerRef = useRef<HTMLElement>(null);
+	// triggers menu compute when the parent is resized
+	useEffect(() => {
+		computeMenuSize(footerRef);
+	}, [props.parentSignal.value]);
+
+	const logMenuRef = useRef<HTMLUListElement>(null);
+	// sets up scroll up/down handler
+	const handleMenuJump = useScrollLogMenu(logMenuRef);
+	// when the log menu updated we'll jump to the bottom
+	// TODO: make this a configurable option. It would be nice to
+	// allow the user to enable/disable the behaviour if they're
+	// searching through logs
+	useSetupLogMenu(() => handleMenuJump("bottom"));
+
+	return (
+		<footer className={clsx(props.className, " bg-slate-900")} ref={footerRef}>
+			<div class="flex flex-col">
+				<ActionBar onJump={handleMenuJump} />
+				<LogMenu logMessages={logMessages} logRef={logMenuRef} />
+			</div>
+		</footer>
+	);
+};

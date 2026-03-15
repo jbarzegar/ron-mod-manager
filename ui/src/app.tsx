@@ -1,11 +1,11 @@
 import "./app.css";
-
+import { Window } from "./Components/Window";
 import { AppLayout } from "./layouts/App";
 
 export function App() {
 	return (
-		<div style={{ height: "100vh" }}>
+		<Window>
 			<AppLayout />
-		</div>
+		</Window>
 	);
 }

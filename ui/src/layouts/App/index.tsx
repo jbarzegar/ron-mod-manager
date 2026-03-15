@@ -1,11 +1,14 @@
 import { computed, useSignal } from "@preact/signals";
 import type { ComponentChild } from "preact";
+import { AddNewLog } from "../../../wailsjs/go/ui/App";
+import { ContextMenu } from "../../Components/ContextMenu";
 import {
 	type DragHandleDirection,
 	type DragMode,
 	useComputedInitialSize,
 	useResize,
 } from "../../hooks";
+import { mainSectionSize } from "../../windowState";
 
 type SectionProps = {
 	children: ComponentChild;
@@ -17,17 +20,19 @@ type SectionProps = {
 	dragHandleDirection?: DragHandleDirection;
 };
 
-const Section = ({
+const MainSection = ({
 	draggable = false,
 	dragDirection = "width",
 	dragHandleDirection = "right",
 	...p
 }: SectionProps) => {
-	const size = useSignal(0);
-	const ref = useComputedInitialSize<HTMLDivElement>(size, dragDirection);
+	const ref = useComputedInitialSize<HTMLDivElement>(
+		mainSectionSize,
+		dragDirection,
+	);
 
 	const { resizeHandle, style } = useResize({
-		signal: size,
+		signal: mainSectionSize,
 		max: Infinity,
 		min: 300,
 		enabled: draggable,
@@ -39,7 +44,7 @@ const Section = ({
 	return (
 		<div
 			className={`${p.className} relative`}
-			style={!size.value ? {} : style}
+			style={!mainSectionSize.value ? {} : style}
 			ref={ref}
 		>
 			{resizeHandle}
@@ -75,15 +80,21 @@ export const AppLayout = () => {
 				<nav className="bg-slate-900 p-4 border-slate-700 border-b-3">
 					ACTIONS
 				</nav>
-				<Section
+				<MainSection
 					className="bg-slate-900 h-4/5"
 					draggable
 					dragDirection="height"
 					dragHandleDirection="bottom"
 				>
 					Main
-				</Section>
-				<footer className="flex-1/5 bg-slate-900 h-1/5 z-10">Context</footer>
+					<button class="btn" type="button" onClick={() => AddNewLog()}>
+						add new log line
+					</button>
+				</MainSection>
+				<ContextMenu
+					className="flex-1/5 h-1/5 z-10"
+					parentSignal={mainSectionSize}
+				/>
 			</div>
 			<aside className="bg-slate-900 flex-1 relative">
 				{resizeHandle}
