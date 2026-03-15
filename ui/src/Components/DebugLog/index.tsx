@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals";
+import { batch, type Signal, signal } from "@preact/signals";
 import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
 import type { contextmenu } from "../../../wailsjs/go/models";
@@ -6,18 +6,19 @@ import * as app from "../../../wailsjs/go/ui/App";
 import * as runtime from "../../../wailsjs/runtime";
 
 // Store log messages in a signal
-const logMessages = signal<contextmenu.LogEntry[]>([]);
+export const logMessages = signal<contextmenu.LogEntry[]>([]);
 
 /**
  * subscribeForNewMessages watches for new messages coming from the go side
  * new messages will get appended to the client-side log state
  */
 const subscribeForNewMessages = () =>
-	runtime.EventsOn("log_event_new_messages", (data: contextmenu.LogEntry[]) => {
-		logMessages.value.push(...data);
+	runtime.EventsOn("log_event_new_messages", (d: contextmenu.LogEntry[]) => {
+		const data = d.filter((x) => !!x.index);
+		logMessages.value = [...logMessages.peek(), ...data];
 	});
 
-const useSetupLogMenu = () => {
+export const useSetupLogMenu = () => {
 	// Get initial logs & subscribe to events for additional Logs
 	// on mount
 	useEffect(() => {
@@ -28,20 +29,18 @@ const useSetupLogMenu = () => {
 				logMessages.value = x;
 			});
 		}
-
 		subscribeForNewMessages();
 	}, []);
 };
 
 interface LogMenuProps {
 	logRef: RefObject<HTMLUListElement>;
+	logMessages: Signal<contextmenu.LogEntry[]>;
 }
-export const LogMenu = (p: LogMenuProps) => {
-	useSetupLogMenu();
-
+export const LogMenu = ({ logMessages, logRef }: LogMenuProps) => {
 	return (
 		<div class="flex flex-col relative overflow-y-scroll">
-			<ul class="mt-1 mb-20" ref={p.logRef}>
+			<ul class="mt-1 mb-20" ref={logRef}>
 				{logMessages.value.map((x) => (
 					<li
 						key={x.index}

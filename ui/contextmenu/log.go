@@ -16,7 +16,8 @@ var (
 )
 
 type DebugLog struct {
-	ctx context.Context
+	ctx         context.Context
+	LatestIndex int
 }
 
 func NewDebugLog(ctx context.Context) *DebugLog {
@@ -25,6 +26,7 @@ func NewDebugLog(ctx context.Context) *DebugLog {
 
 func (a *DebugLog) GetInitialLogs() []LogEntry {
 	entries := make([]LogEntry, 20)
+	a.LatestIndex = len(entries)
 	for i := range entries {
 		entries[i] = LogEntry{
 			Index:   i,
@@ -36,6 +38,11 @@ func (a *DebugLog) GetInitialLogs() []LogEntry {
 
 }
 
-func (a *DebugLog) NewLogs(logs []LogEntry) {
-	runtime.EventsEmit(a.ctx, LogEventNewMessages, logs)
+func (a *DebugLog) NewLogs(logs []string) {
+	entries := make([]LogEntry, len(logs))
+	for _, x := range logs {
+		a.LatestIndex = a.LatestIndex + 1
+		entries = append(entries, LogEntry{Index: a.LatestIndex, Message: x})
+	}
+	runtime.EventsEmit(a.ctx, LogEventNewMessages, entries)
 }

@@ -27,3 +27,9 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) SetupLogs() []contextmenu.LogEntry {
 	return a.ContextMenu.DebugLog.GetInitialLogs()
 }
+func (a *App) AddNewLog() {
+	a.ContextMenu.DebugLog.NewLogs([]string{
+		"new log from event. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+	})
+
+}

@@ -2,7 +2,7 @@ import type { Signal } from "@preact/signals";
 import clsx from "clsx";
 import type { RefObject } from "preact";
 import { useCallback, useEffect, useRef } from "preact/hooks";
-import { LogMenu } from "./DebugLog";
+import { LogMenu, logMessages, useSetupLogMenu } from "./DebugLog";
 
 const GroupDropDown = () => {
 	return (
@@ -115,11 +115,12 @@ export const ContextMenu = (props: ContextMenuProps) => {
 	// sets up scroll up/down handler
 	const handleMenuJump = useScrollLogMenu(logMenuRef);
 
+	useSetupLogMenu();
 	return (
 		<footer className={clsx(props.className, " bg-slate-900")} ref={footerRef}>
 			<div class="flex flex-col">
 				<ActionBar onJump={handleMenuJump} />
-				<LogMenu logRef={logMenuRef} />
+				<LogMenu logMessages={logMessages} logRef={logMenuRef} />
 			</div>
 		</footer>
 	);

@@ -1,5 +1,6 @@
 import { computed, useSignal } from "@preact/signals";
 import type { ComponentChild } from "preact";
+import { AddNewLog } from "../../../wailsjs/go/ui/App";
 import { ContextMenu } from "../../Components/ContextMenu";
 import {
 	type DragHandleDirection,
@@ -86,6 +87,9 @@ export const AppLayout = () => {
 					dragHandleDirection="bottom"
 				>
 					Main
+					<button class="btn" type="button" onClick={() => AddNewLog()}>
+						add new log line
+					</button>
 				</MainSection>
 				<ContextMenu
 					className="flex-1/5 h-1/5 z-10"
